@@ -64,6 +64,11 @@ export default function SendSecretMessagePage({
       }
       const userData = await userRes.json();
       setUser(userData.user);
+      if (userData.user?.name) {
+        document.title = `${userData.user.name} (@${username}) • Catatan & Lagu Rahasia - BisikLagu`;
+      } else {
+        document.title = `Profil @${username} - BisikLagu`;
+      }
 
       // 2. Fetch Public Received Messages (Newest First)
       const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}&public=true`);

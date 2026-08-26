@@ -26,6 +26,7 @@ export default function InboxPage({
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
+    document.title = `Inbox Catatan @${username} - BisikLagu`;
     if (typeof window !== 'undefined') {
       setDomain(window.location.host);
     }

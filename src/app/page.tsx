@@ -20,6 +20,7 @@ export default function Home() {
   const [createdUser, setCreatedUser] = useState<any | null>(null);
 
   useEffect(() => {
+    document.title = "BisikLagu - Bisikan Pesan & Melodi Rahasia";
     if (typeof window !== 'undefined') {
       setDomain(window.location.host);
     }
