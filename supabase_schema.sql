@@ -28,9 +28,15 @@ CREATE TABLE IF NOT EXISTS messages (
   selected_lyrics TEXT,
   theme_style TEXT DEFAULT 'paper_binder',
   hint_sender TEXT,
+  reply_text TEXT,
+  replied_at TIMESTAMP WITH TIME ZONE,
   is_read INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migrasi aman jika tabel messages sudah ada sebelumnya:
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS reply_text TEXT;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS replied_at TIMESTAMP WITH TIME ZONE;
 
 -- 3. Index untuk performa pencarian pesan berdasarkan username
 CREATE INDEX IF NOT EXISTS idx_messages_username ON messages(username);
@@ -50,7 +56,7 @@ INSERT INTO users (id, username, name, pin, bio_prompt, theme, avatar)
 VALUES ('user_demo_123', 'demo', 'Alex', '1234', 'Kirimkan lagu & pesan rahasia untukku! 🎧', 'paper_binder', '🎧')
 ON CONFLICT (username) DO NOTHING;
 
-INSERT INTO messages (id, username, sender_alias, message_text, song_title, song_artist, song_album_cover, song_preview_url, selected_lyrics, theme_style, hint_sender, is_read)
+INSERT INTO messages (id, username, sender_alias, message_text, song_title, song_artist, song_album_cover, song_preview_url, selected_lyrics, theme_style, hint_sender, reply_text, replied_at, is_read)
 VALUES (
   'msg_demo_1',
   'demo',
@@ -63,5 +69,7 @@ VALUES (
   'Lagu ini mewakili Perasaanku ke kamu, yang tersimpan rapat tapi tulus.',
   'paper_binder',
   'Inisial A - Teman satu kelas',
+  'Makasih banyak ya! Lagunya bagus banget, jujur tersentuh pas dengernya 🥹❤️',
+  CURRENT_TIMESTAMP,
   0
 ) ON CONFLICT (id) DO NOTHING;
