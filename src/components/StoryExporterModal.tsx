@@ -122,8 +122,10 @@ export default function StoryExporterModal({
       }
 
       const combinedStream = new MediaStream(combinedTracks);
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
+      const mimeType = MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')
+        ? 'video/mp4;codecs=avc1,mp4a.40.2'
+        : MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')
+        ? 'video/mp4;codecs=avc1'
         : MediaRecorder.isTypeSupported('video/mp4')
         ? 'video/mp4'
         : 'video/webm';
@@ -168,12 +170,12 @@ export default function StoryExporterModal({
 
       mediaRecorder.onstop = () => {
         setVideoProgress(100);
-        const blob = new Blob(chunks, { type: mimeType });
+        const blob = new Blob(chunks, { type: 'video/mp4' });
         const videoUrl = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
         a.href = videoUrl;
-        a.download = `bisiklagu-video-${selectedTheme}-${Date.now()}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
+        a.download = `bisiklagu-video-${selectedTheme}-${Date.now()}.mp4`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -282,7 +284,7 @@ export default function StoryExporterModal({
                 disabled={isVideoExporting || isExporting}
                 className="w-full py-3 px-4 rounded-sm bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold transition-colors disabled:opacity-50"
               >
-                {isVideoExporting ? `Memproses Video 30 Detik (${videoProgress}%)...` : 'Download Video (Musik 30s)'}
+                {isVideoExporting ? `Memproses Video MP4 (${videoProgress}%)...` : 'Download Video MP4 (Musik 30s)'}
               </button>
             )}
 
