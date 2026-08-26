@@ -4,6 +4,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('username');
   const pin = searchParams.get('pin');
+  const isPublic = searchParams.get('public') === 'true';
 
   if (!username) {
     return NextResponse.json({ error: 'Username parameter required' }, { status: 400 });
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (user.pin !== pin) {
+    if (!isPublic && user.pin !== pin) {
       return NextResponse.json({ error: 'PIN salah! Akses inbox ditolak.' }, { status: 401 });
     }
 

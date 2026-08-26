@@ -48,6 +48,14 @@ export function getDb(): Database.Database {
       CREATE INDEX IF NOT EXISTS idx_messages_username ON messages(username);
     `);
 
+    // Add reply columns if they don't exist
+    try {
+      instance.exec(`ALTER TABLE messages ADD COLUMN reply_text TEXT;`);
+    } catch (e) {}
+    try {
+      instance.exec(`ALTER TABLE messages ADD COLUMN replied_at DATETIME;`);
+    } catch (e) {}
+
     // Ensure default demo user exists (Alex)
     const existingDemoUser = instance.prepare('SELECT * FROM users WHERE username = ?').get('demo');
     if (!existingDemoUser) {

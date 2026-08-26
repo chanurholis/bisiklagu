@@ -278,6 +278,18 @@ export default function StoryCard({
             Petunjuk: {message.hint_sender}
           </div>
         )}
+
+        {/* Public Reply Box (if present) */}
+        {message.reply_text && (
+          <div className="p-3 bg-stone-900 text-stone-100 border border-amber-400 rounded-sm shadow-md space-y-0.5">
+            <span className="text-[9px] font-bold text-amber-300 uppercase block tracking-wider">
+              Balasan {recipientName}:
+            </span>
+            <p className="font-handwriting text-base font-bold text-amber-100">
+              "{message.reply_text}"
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer Bar */}

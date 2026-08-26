@@ -21,6 +21,8 @@ export interface SecretMessage {
   selected_lyrics?: string;
   theme_style: string;
   hint_sender?: string;
+  reply_text?: string;
+  replied_at?: string;
   is_read: number;
   created_at: string;
 }

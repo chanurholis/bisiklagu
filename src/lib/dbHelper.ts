@@ -209,3 +209,33 @@ export async function deleteMessageById(id: string, username: string): Promise<b
     return false;
   }
 }
+
+export async function replyToMessage(id: string, username: string, replyText: string): Promise<boolean> {
+  const repliedAt = new Date().toISOString();
+
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('messages')
+      .update({ reply_text: replyText, replied_at: repliedAt })
+      .eq('id', id)
+      .eq('username', username);
+
+    if (error) {
+      console.error('Supabase replyToMessage error:', error);
+      return false;
+    }
+    return true;
+  }
+
+  // SQLite Fallback
+  try {
+    const db = getDb();
+    const result = db
+      .prepare('UPDATE messages SET reply_text = ?, replied_at = ? WHERE id = ? AND username = ?')
+      .run(replyText, repliedAt, id, username);
+    return result.changes > 0;
+  } catch (err) {
+    console.error('SQLite replyToMessage error:', err);
+    return false;
+  }
+}
