@@ -231,8 +231,8 @@ export default function StoryExporterModal({
         </button>
 
         {/* Card Live Preview */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div className="transform hover:scale-[1.01] transition-transform">
+        <div className="flex-1 flex flex-col items-center justify-center py-2">
+          <div className="transform scale-[0.8] sm:scale-100 origin-center transition-transform my-0 sm:my-auto">
             <StoryCard message={updatedMessage} recipientName={recipientName} />
           </div>
         </div>
@@ -241,16 +241,16 @@ export default function StoryExporterModal({
         <div className="flex-1 flex flex-col justify-between gap-4 py-1">
           <div>
             <h3 className="font-handwriting text-2xl font-bold text-stone-100">
-              Export Kartu BisikLagu
+              Bagikan Kartu
             </h3>
             <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-              Pilih tema visual (Romantis, Cool, Retro, Cyber), lalu unduh gambar HD atau video 30s (+ musik).
+              Pilih gaya tampilan kartu untuk diunduh atau dibagikan.
             </p>
 
             {/* Theme Selector Grid */}
             <div className="mt-3">
               <label className="text-[11px] font-bold text-amber-300 uppercase tracking-wider block mb-1.5">
-                Pilih Tema Visual Kartu:
+                Pilih Gaya:
               </label>
               <div className="grid grid-cols-2 gap-1.5 max-h-44 overflow-y-auto pr-1">
                 {THEMES.map((th) => (
@@ -282,9 +282,9 @@ export default function StoryExporterModal({
                 type="button"
                 onClick={handleDownloadVideo}
                 disabled={isVideoExporting || isExporting}
-                className="w-full py-3 px-4 rounded-sm bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold transition-colors disabled:opacity-50"
+                className="w-full py-2.5 px-4 rounded-sm bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold transition-colors disabled:opacity-50"
               >
-                {isVideoExporting ? `Memproses Video MP4 (${videoProgress}%)...` : 'Download Video MP4 (Musik 30s)'}
+                {isVideoExporting ? `Membuat Video (${videoProgress}%)...` : 'Simpan Video (MP4 + Musik)'}
               </button>
             )}
 
@@ -293,9 +293,9 @@ export default function StoryExporterModal({
               type="button"
               onClick={handleDownloadPNGClient}
               disabled={isExporting || isVideoExporting}
-              className="w-full py-3 px-4 rounded-sm bg-stone-100 hover:bg-white text-stone-900 font-bold transition-colors disabled:opacity-50"
+              className="w-full py-2.5 px-4 rounded-sm bg-stone-100 hover:bg-white text-stone-900 font-bold transition-colors disabled:opacity-50"
             >
-              Download Gambar HD (1080x1920 PNG)
+              Simpan Gambar (PNG)
             </button>
 
             {/* Direct Web Share */}
@@ -305,7 +305,7 @@ export default function StoryExporterModal({
               disabled={isExporting || isVideoExporting}
               className="w-full py-2 px-4 rounded-sm bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 transition-colors"
             >
-              Bagikan ke Media Sosial
+              Bagikan
             </button>
           </div>
         </div>

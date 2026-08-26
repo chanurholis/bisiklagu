@@ -15,34 +15,34 @@ export default function BinderNotebook({
   subtitle,
 }: BinderNotebookProps) {
   return (
-    <div className="w-full max-w-xl mx-auto px-2 py-4">
-      {/* Outer Paper Folder Shell - Sharp Rectangular Design, No Gradients */}
-      <div className="bg-[#292524] p-3 sm:p-5 border-2 border-stone-700 shadow-xl rounded-md">
+    <div className="w-full max-w-2xl mx-auto sm:px-4 sm:py-6">
+      {/* Outer Shell: Full width on mobile, rounded card on desktop */}
+      <div className="bg-[#292524] p-2 sm:p-5 border-0 sm:border-2 border-stone-700 shadow-2xl rounded-none sm:rounded-lg min-h-screen sm:min-h-0 flex flex-col justify-between">
         
         {/* Main Inner Paper Sheet */}
-        <div className="bg-[#faf7f2] border-2 border-stone-800 p-4 sm:p-7 text-stone-900 rounded-sm relative">
+        <div className="paper-texture border-0 sm:border-2 border-stone-800 p-4 sm:p-7 text-stone-900 rounded-none sm:rounded-md relative flex-1 flex flex-col">
           
           {/* Header Navigation Bar */}
-          <div className="flex items-center justify-between pb-4 mb-4 border-b-2 border-stone-800">
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="w-7 h-7 bg-stone-900 text-stone-100 flex items-center justify-center font-black text-sm rounded-sm">
+          <div className="flex items-center justify-between pb-3 sm:pb-4 mb-4 border-b-2 border-stone-800">
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <span className="w-8 h-8 bg-stone-900 text-stone-100 flex items-center justify-center font-black text-base rounded-sm shadow-sm">
                 B
               </span>
-              <span className="font-handwriting text-2xl font-bold tracking-tight text-stone-900 group-hover:text-amber-800 transition-colors">
+              <span className="font-body text-xl sm:text-2xl font-extrabold tracking-tight text-stone-900 group-hover:text-amber-800 transition-colors">
                 BisikLagu
               </span>
             </Link>
 
-            <div className="flex items-center gap-2 text-xs font-bold">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
               <Link
                 href="/u/demo"
-                className="px-2.5 py-1 bg-stone-200 hover:bg-stone-300 text-stone-900 border border-stone-800 rounded-sm transition-colors"
+                className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-900 border border-stone-800 rounded-sm transition-colors"
               >
-                Coba Demo
+                Demo
               </Link>
               <Link
                 href="/u/demo/inbox"
-                className="px-2.5 py-1 bg-amber-900 hover:bg-amber-800 text-amber-100 border border-amber-950 rounded-sm transition-colors"
+                className="px-3 py-1.5 bg-amber-900 hover:bg-amber-800 text-amber-100 border border-amber-950 rounded-sm transition-colors"
               >
                 Inbox
               </Link>
@@ -51,9 +51,9 @@ export default function BinderNotebook({
 
           {/* Page Title & Subtitle Section */}
           {(title || subtitle) && (
-            <div className="mb-5 pb-3 border-b border-dashed border-stone-400">
+            <div className="mb-4 sm:mb-5 pb-3 border-b border-dashed border-stone-400">
               {title && (
-                <h1 className="font-handwriting text-2xl sm:text-3xl font-bold text-stone-900 leading-tight">
+                <h1 className="font-body text-2xl sm:text-3xl font-extrabold text-stone-900 leading-tight">
                   {title}
                 </h1>
               )}
@@ -66,7 +66,7 @@ export default function BinderNotebook({
           )}
 
           {/* Main Content Area */}
-          <div className="space-y-4">{children}</div>
+          <div className="flex-1 space-y-4">{children}</div>
         </div>
       </div>
     </div>

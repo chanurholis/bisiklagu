@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Patrick+Hand&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -7,44 +7,58 @@
   --paper-bg: #faf7f2;
 }
 
-body {
+html, body {
   background-color: #1c1917;
   color: #faf7f2;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  width: 100%;
+  overflow-x: hidden;
 }
 
+/* Formal, Neat & Ultra-Clean Typography System */
 .font-handwriting {
-  font-family: 'Caveat', 'Patrick Hand', cursive, sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .font-body {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* Flat Paper Style - Sharp & No Gradients */
-.paper-flat {
+.font-lyric {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Natural Paper Grain / Fiber Texture Overlay */
+.paper-texture {
   background-color: #faf7f2;
-  color: #1c1917;
-  border: 2px solid #292524;
+  background-image: 
+    radial-gradient(at 90% 10%, rgba(245, 238, 224, 0.6) 0px, transparent 50%),
+    radial-gradient(at 10% 90%, rgba(235, 225, 205, 0.5) 0px, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoise)' opacity='0.05'/%3E%3C/svg%3E");
 }
 
-.paper-kraft-flat {
+.paper-texture-kraft {
   background-color: #e5dec9;
-  color: #1c1917;
-  border: 2px solid #292524;
+  background-image: 
+    radial-gradient(at 80% 20%, rgba(220, 210, 190, 0.4) 0px, transparent 50%),
+    radial-gradient(at 20% 80%, rgba(210, 195, 175, 0.4) 0px, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoiseKraft'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoiseKraft)' opacity='0.06'/%3E%3C/svg%3E");
 }
 
-.paper-dark-flat {
-  background-color: #292524;
-  color: #faf7f2;
-  border: 2px solid #44403c;
-}
-
-/* Simple Tape Effect */
-.tape-label {
+.paper-texture-card {
   background-color: #fef08a;
-  color: #713f12;
-  border: 1px solid #eab308;
+  background-image: 
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paperNoiseCard'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paperNoiseCard)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* Prevent auto-zoom on iOS inputs */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 @keyframes fadeIn {
@@ -53,5 +67,5 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }

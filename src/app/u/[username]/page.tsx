@@ -4,6 +4,7 @@ import React, { useEffect, useState, use } from 'react';
 import { User, SecretMessage } from '@/types';
 import SongPicker from '@/components/SongPicker';
 import BinderNotebook from '@/components/BinderNotebook';
+import StoryExporterModal from '@/components/StoryExporterModal';
 import confetti from 'canvas-confetti';
 import Link from 'next/link';
 
@@ -45,8 +46,10 @@ export default function SendSecretMessagePage({
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [replyError, setReplyError] = useState('');
 
+  // Story Exporter Modal State
+  const [selectedMessageForStory, setSelectedMessageForStory] = useState<SecretMessage | null>(null);
+
   useEffect(() => {
-    // Check saved PIN
     const savedPin = localStorage.getItem(`bisiklagu_pin_${username}`);
     if (savedPin) {
       setReplyPinInput(savedPin);
@@ -56,7 +59,6 @@ export default function SendSecretMessagePage({
 
   const fetchData = async () => {
     try {
-      // 1. Fetch User Profile
       const userRes = await fetch(`/api/users?username=${encodeURIComponent(username)}`);
       if (!userRes.ok) {
         setNotFound(true);
@@ -64,13 +66,13 @@ export default function SendSecretMessagePage({
       }
       const userData = await userRes.json();
       setUser(userData.user);
+
       if (userData.user?.name) {
         document.title = `${userData.user.name} (@${username}) • Catatan & Lagu Rahasia - BisikLagu`;
       } else {
         document.title = `Profil @${username} - BisikLagu`;
       }
 
-      // 2. Fetch Public Received Messages (Newest First)
       const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}&public=true`);
       if (msgRes.ok) {
         const msgData = await msgRes.json();
@@ -113,7 +115,7 @@ export default function SendSecretMessagePage({
       if (res.ok) {
         setIsSent(true);
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-        fetchData(); // Refresh list
+        fetchData();
       } else {
         alert('Gagal mengirim pesan. Silakan coba lagi.');
       }
@@ -172,7 +174,6 @@ export default function SendSecretMessagePage({
         return;
       }
 
-      // Save PIN locally for smooth future replies
       localStorage.setItem(`bisiklagu_pin_${username}`, replyPinInput);
 
       setMessages((prev) =>
@@ -195,23 +196,23 @@ export default function SendSecretMessagePage({
 
   if (loading) {
     return (
-      <div className="min-h-screen py-16 flex flex-col items-center justify-center p-4">
-        <p className="text-xs font-bold text-stone-400">Memuat profil & pesan...</p>
+      <div className="min-h-screen bg-[#1c1917] flex flex-col items-center justify-center p-4">
+        <p className="text-sm font-bold text-stone-400">Memuat profil & pesan...</p>
       </div>
     );
   }
 
   if (notFound || !user) {
     return (
-      <div className="min-h-screen py-16 flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#1c1917] flex flex-col items-center justify-center p-4">
         <BinderNotebook title="Pengguna Tidak Ditemukan" subtitle="Username belum terdaftar">
-          <div className="text-center py-4 space-y-3">
-            <p className="text-xs text-stone-600">
+          <div className="text-center py-6 space-y-4">
+            <p className="text-sm text-stone-600">
               Username <span className="font-bold text-stone-900">@{username}</span> belum terdaftar.
             </p>
             <Link
               href="/"
-              className="inline-block py-2 px-4 bg-stone-900 text-stone-100 font-bold text-xs rounded-sm"
+              className="inline-block py-2.5 px-5 bg-stone-900 text-stone-100 font-bold text-sm rounded-sm"
             >
               Buat Link Baru
             </Link>
@@ -222,13 +223,13 @@ export default function SendSecretMessagePage({
   }
 
   return (
-    <main className="min-h-screen py-6 sm:py-10 px-2 sm:px-4 text-stone-900">
+    <main className="min-h-screen bg-[#1c1917] text-stone-900 flex flex-col justify-center">
       <BinderNotebook
         title={`Profil ${user.name}`}
         subtitle={`"${user.bio_prompt}"`}
       >
-        {/* Toggle Form / Header Banner */}
-        <div className="bg-[#e5dec9] border border-stone-400 p-3 rounded-sm flex items-center justify-between gap-2 text-xs">
+        {/* Toggle Form Header Bar */}
+        <div className="bg-[#e5dec9] border border-stone-400 p-3 sm:p-3.5 rounded-sm flex items-center justify-between gap-2 text-xs sm:text-sm">
           <div className="font-bold text-stone-900">
             {messages.length} Pesan Diterima
           </div>
@@ -238,21 +239,21 @@ export default function SendSecretMessagePage({
               setShowForm(!showForm);
               setIsSent(false);
             }}
-            className="py-1.5 px-3 bg-stone-900 text-stone-100 hover:bg-stone-800 font-bold rounded-sm transition-colors"
+            className="py-2 px-3.5 bg-stone-900 text-stone-100 hover:bg-stone-800 font-bold text-xs sm:text-sm rounded-sm transition-colors shadow-sm"
           >
-            {showForm ? 'Tutup Form' : '+ Kirim Pesan & Lagu Rahasia'}
+            {showForm ? 'Tutup Form' : '+ Kirim Pesan & Lagu'}
           </button>
         </div>
 
         {/* Message Creation Form */}
         {showForm && (
-          <div className="bg-[#fffefb] border-2 border-stone-800 p-4 rounded-sm space-y-4 my-3 animate-fade-in">
+          <div className="bg-[#fffefb] border-2 border-stone-800 p-4 sm:p-5 rounded-sm space-y-4 my-3 animate-fade-in">
             {isSent ? (
-              <div className="text-center py-3 space-y-3">
-                <h3 className="font-handwriting text-2xl font-bold text-stone-900">
+              <div className="text-center py-4 space-y-3">
+                <h3 className="font-handwriting text-3xl font-bold text-stone-900">
                   Pesan Rahasia Terkirim!
                 </h3>
-                <p className="text-xs text-stone-600">
+                <p className="text-xs sm:text-sm text-stone-600">
                   Pesan dan lagu rahasiamu sudah terkirim ke {user.name}.
                 </p>
                 <button
@@ -262,20 +263,20 @@ export default function SendSecretMessagePage({
                     setMessageText('');
                     setSelectedSong(null);
                   }}
-                  className="py-2 px-4 bg-stone-200 hover:bg-stone-300 text-stone-900 font-bold text-xs rounded-sm border border-stone-400"
+                  className="py-2.5 px-4 bg-stone-200 hover:bg-stone-300 text-stone-900 font-bold text-xs sm:text-sm rounded-sm border border-stone-400"
                 >
                   Kirim Pesan Lainnya
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSendMessage} className="space-y-4">
-                <h3 className="font-handwriting text-2xl font-bold text-stone-900 border-b border-stone-300 pb-2">
+                <h3 className="font-bold text-base sm:text-lg text-stone-900 border-b border-stone-300 pb-2">
                   Tulis Pesan untuk {user.name}
                 </h3>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-stone-900 block">
-                    1. Isi Pesan Anonim
+                  <label className="text-xs sm:text-sm font-bold text-stone-900 block">
+                    Pesan
                   </label>
                   <textarea
                     rows={3}
@@ -283,19 +284,19 @@ export default function SendSecretMessagePage({
                     placeholder={`Tuliskan pesan rahasia untuk ${user.name}...`}
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
-                    className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm p-2.5 text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 resize-none font-medium"
+                    className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm p-3 text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 resize-none font-medium"
                   />
 
                   <div>
-                    <label className="text-[11px] font-bold text-stone-700 block mb-1">
-                      Nama Pengirim (Anonim):
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      Nama Pengirim (Opsional):
                     </label>
                     <input
                       type="text"
                       placeholder="Pengagum Rahasia..."
                       value={senderAlias}
                       onChange={(e) => setSenderAlias(e.target.value)}
-                      className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm py-1.5 px-2.5 text-xs text-stone-900 focus:outline-none focus:border-stone-900"
+                      className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm py-2 px-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900"
                     />
                   </div>
                 </div>
@@ -306,22 +307,22 @@ export default function SendSecretMessagePage({
                 />
 
                 <div>
-                  <label className="text-xs font-bold text-stone-900 block mb-1">
-                    3. Petunjuk Pengirim (Opsional)
+                  <label className="text-xs sm:text-sm font-bold text-stone-900 block mb-1">
+                    Petunjuk Pengirim (Opsional)
                   </label>
                   <input
                     type="text"
                     placeholder="Contoh: Teman satu kelas..."
                     value={hintSender}
                     onChange={(e) => setHintSender(e.target.value)}
-                    className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm py-1.5 px-2.5 text-xs text-stone-900 focus:outline-none focus:border-stone-900"
+                    className="w-full bg-[#faf7f2] border border-stone-300 rounded-sm py-2 px-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSending}
-                  className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-xs rounded-sm transition-colors disabled:opacity-50"
+                  className="w-full py-3.5 px-4 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-sm sm:text-base rounded-sm transition-colors disabled:opacity-50 shadow-md"
                 >
                   {isSending ? 'Mengirim...' : 'Kirim Pesan Rahasia'}
                 </button>
@@ -330,23 +331,23 @@ export default function SendSecretMessagePage({
           </div>
         )}
 
-        {/* Public Messages Section (Sorted Newest First) */}
+        {/* Public Messages Section */}
         <div className="space-y-4 pt-2">
-          <h3 className="font-handwriting text-2xl font-bold text-stone-900 flex items-center justify-between border-b border-stone-300 pb-2">
-            <span>Catatan Rahasia Terkirim</span>
-            <span className="text-xs text-stone-500 font-sans font-medium">Terbaru pertama</span>
+          <h3 className="font-bold text-base sm:text-lg text-stone-900 flex items-center justify-between border-b border-stone-300 pb-2">
+            <span>Pesan Rahasia Terkirim</span>
+            <span className="text-xs text-stone-500 font-medium">Terbaru</span>
           </h3>
 
           {messages.length === 0 ? (
-            <div className="bg-[#fffefb] border border-stone-400 p-8 rounded-sm text-center space-y-2">
-              <h4 className="font-handwriting text-xl font-bold text-stone-900">Belum Ada Pesan</h4>
-              <p className="text-xs text-stone-600">
+            <div className="bg-[#fffefb] border border-stone-400 p-6 sm:p-8 rounded-sm text-center space-y-2">
+              <h4 className="font-bold text-lg text-stone-900">Belum Ada Pesan</h4>
+              <p className="text-xs sm:text-sm text-stone-600">
                 Jadilah orang pertama yang mengirimi <span className="font-bold">{user.name}</span> pesan & lagu rahasia!
               </p>
               <button
                 type="button"
                 onClick={() => setShowForm(true)}
-                className="mt-2 py-2 px-4 bg-stone-900 text-stone-100 font-bold text-xs rounded-sm inline-block"
+                className="mt-2 py-2.5 px-4 bg-stone-900 text-stone-100 font-bold text-xs sm:text-sm rounded-sm inline-block shadow-sm"
               >
                 Kirim Pesan Sekarang
               </button>
@@ -356,15 +357,15 @@ export default function SendSecretMessagePage({
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className="bg-[#fffefb] border border-stone-400 p-4 rounded-sm space-y-3 relative hover:border-stone-700 transition-colors shadow-sm"
+                  className="bg-[#fffefb] border border-stone-400 p-4 sm:p-5 rounded-sm space-y-3 relative hover:border-stone-700 transition-colors shadow-sm"
                 >
                   {/* Sender Header */}
-                  <div className="flex items-center justify-between border-b border-stone-200 pb-2 text-xs">
+                  <div className="flex items-center justify-between border-b border-stone-200 pb-2 text-xs sm:text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-stone-900">
                         Dari: {msg.sender_alias}
                       </span>
-                      <span className="text-[10px] text-stone-500 font-medium">
+                      <span className="text-[11px] sm:text-xs text-stone-500 font-medium">
                         • {new Date(msg.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -375,37 +376,37 @@ export default function SendSecretMessagePage({
                         setReplyingMsgId(replyingMsgId === msg.id ? null : msg.id);
                         setReplyError('');
                       }}
-                      className="text-amber-900 hover:text-amber-950 text-xs font-bold underline"
+                      className="text-amber-900 hover:text-amber-950 text-xs sm:text-sm font-bold underline"
                     >
                       {msg.reply_text ? 'Edit Balasan' : 'Balas Pesan'}
                     </button>
                   </div>
 
                   {/* Secret Message Content */}
-                  <div className="bg-[#faf7f2] p-3 rounded-sm border border-stone-300">
-                    <p className="font-handwriting text-lg font-bold text-stone-950 leading-snug">
+                  <div className="bg-[#faf7f2] p-3 sm:p-3.5 rounded-sm border border-stone-300">
+                    <p className="text-sm sm:text-base font-semibold text-stone-900 leading-relaxed">
                       "{msg.message_text}"
                     </p>
                   </div>
 
                   {/* Song Audio & Lyric snippet */}
                   {msg.song_title && (
-                    <div className="bg-[#e5dec9] p-3 rounded-sm border border-stone-400 flex flex-col gap-2">
+                    <div className="bg-[#e5dec9] p-3.5 rounded-sm border border-stone-400 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
                           <img
                             src={msg.song_album_cover || '/placeholder-music.png'}
                             alt={msg.song_title}
-                            className="w-10 h-10 rounded-sm object-cover border border-stone-400"
+                            className="w-11 h-11 rounded-sm object-cover border border-stone-400 flex-shrink-0"
                           />
                           <div className="min-w-0">
-                            <span className="text-[9px] font-bold text-amber-900 uppercase block">
+                            <span className="text-[10px] font-bold text-amber-900 uppercase block">
                               Lagu Rahasia
                             </span>
-                            <h4 className="text-xs font-bold text-stone-900 truncate">
+                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 truncate">
                               {msg.song_title}
                             </h4>
-                            <p className="text-[10px] text-stone-600 truncate font-medium">{msg.song_artist}</p>
+                            <p className="text-xs text-stone-600 truncate font-medium">{msg.song_artist}</p>
                           </div>
                         </div>
 
@@ -413,7 +414,7 @@ export default function SendSecretMessagePage({
                           <button
                             type="button"
                             onClick={(e) => handleTogglePlayAudio(msg, e)}
-                            className="w-7 h-7 rounded-sm bg-stone-900 text-stone-100 text-xs font-bold flex items-center justify-center flex-shrink-0"
+                            className="w-8 h-8 rounded-sm bg-stone-900 text-stone-100 text-xs sm:text-sm font-bold flex items-center justify-center flex-shrink-0"
                           >
                             {playingMsgId === msg.id ? '⏸' : '▶'}
                           </button>
@@ -421,8 +422,13 @@ export default function SendSecretMessagePage({
                       </div>
 
                       {msg.selected_lyrics && (
-                        <div className="text-[11px] font-handwriting text-base font-bold italic text-stone-900 pl-2 border-l-2 border-stone-900 pt-0.5">
-                          "{msg.selected_lyrics}"
+                        <div className="bg-[#faf7f2]/80 p-2.5 rounded-sm border-l-2 border-stone-800 mt-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider block text-stone-700 mb-0.5">
+                            Lirik:
+                          </span>
+                          <p className="text-xs sm:text-sm font-medium italic text-stone-900 leading-normal">
+                            "{msg.selected_lyrics}"
+                          </p>
                         </div>
                       )}
                     </div>
@@ -430,32 +436,43 @@ export default function SendSecretMessagePage({
 
                   {/* Sender Hint */}
                   {msg.hint_sender && (
-                    <div className="text-[11px] text-stone-700 bg-stone-100 p-2 rounded-sm border border-stone-300 font-medium">
+                    <div className="text-xs sm:text-sm text-stone-700 bg-stone-100 p-2.5 rounded-sm border border-stone-300 font-medium">
                       Petunjuk: <span className="font-bold">{msg.hint_sender}</span>
                     </div>
                   )}
 
                   {/* Recipient's Reply Section */}
                   {msg.reply_text && (
-                    <div className="bg-[#fef08a] border border-amber-400 p-3 rounded-sm space-y-1 mt-2">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-amber-900 uppercase">
+                    <div className="bg-[#fef08a] border border-amber-400 p-3 sm:p-3.5 rounded-sm space-y-1 mt-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-amber-900 uppercase">
                         <span>Balasan dari {user.name}:</span>
                         {msg.replied_at && (
-                          <span className="font-normal opacity-75">
+                          <span className="font-normal opacity-75 text-[11px]">
                             {new Date(msg.replied_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </span>
                         )}
                       </div>
-                      <p className="font-handwriting text-lg font-bold text-stone-950">
+                      <p className="text-xs sm:text-sm font-semibold text-stone-950 leading-relaxed">
                         "{msg.reply_text}"
                       </p>
                     </div>
                   )}
 
+                  {/* Export & Share Button Bar */}
+                  <div className="pt-2 flex items-center justify-end border-t border-stone-200 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMessageForStory(msg)}
+                      className="py-1.5 px-3 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-xs rounded-sm transition-colors shadow-sm flex items-center gap-1.5"
+                    >
+                      <span>Bagikan Kartu</span>
+                    </button>
+                  </div>
+
                   {/* Reply Form Modal / Inline Box */}
                   {replyingMsgId === msg.id && (
-                    <div className="bg-stone-900 text-stone-100 p-3.5 rounded-sm space-y-3 mt-3 animate-fade-in border border-stone-700">
-                      <h4 className="text-xs font-bold text-amber-300">
+                    <div className="bg-stone-900 text-stone-100 p-4 rounded-sm space-y-3 mt-3 animate-fade-in border border-stone-700">
+                      <h4 className="text-xs sm:text-sm font-bold text-amber-300">
                         Balas Pesan Ini sebagai {user.name}
                       </h4>
 
@@ -465,11 +482,11 @@ export default function SendSecretMessagePage({
                         placeholder="Tuliskan balasan publik kamu di sini..."
                         value={replyInputText}
                         onChange={(e) => setReplyInputText(e.target.value)}
-                        className="w-full bg-stone-800 border border-stone-600 rounded-sm p-2 text-xs text-stone-100 placeholder-stone-400 focus:outline-none focus:border-amber-400"
+                        className="w-full bg-stone-800 border border-stone-600 rounded-sm p-2.5 text-sm text-stone-100 placeholder-stone-400 focus:outline-none focus:border-amber-400 font-medium"
                       />
 
                       <div>
-                        <label className="text-[10px] font-bold text-stone-300 block mb-1">
+                        <label className="text-xs font-bold text-stone-300 block mb-1">
                           PIN Keamanan {user.name}:
                         </label>
                         <input
@@ -478,19 +495,19 @@ export default function SendSecretMessagePage({
                           placeholder="Masukkan PIN..."
                           value={replyPinInput}
                           onChange={(e) => setReplyPinInput(e.target.value)}
-                          className="w-full bg-stone-800 border border-stone-600 rounded-sm py-1.5 px-2.5 text-xs text-stone-100 tracking-widest focus:outline-none focus:border-amber-400"
+                          className="w-full bg-stone-800 border border-stone-600 rounded-sm py-2 px-3 text-sm text-stone-100 tracking-widest focus:outline-none focus:border-amber-400 font-bold"
                         />
                       </div>
 
                       {replyError && (
-                        <p className="text-[11px] text-rose-400 font-bold">{replyError}</p>
+                        <p className="text-xs text-rose-400 font-bold">{replyError}</p>
                       )}
 
-                      <div className="flex justify-end gap-2 text-xs font-bold pt-1">
+                      <div className="flex justify-end gap-2 text-xs sm:text-sm font-bold pt-1">
                         <button
                           type="button"
                           onClick={() => setReplyingMsgId(null)}
-                          className="py-1 px-3 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-sm"
+                          className="py-1.5 px-3.5 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-sm"
                         >
                           Batal
                         </button>
@@ -498,7 +515,7 @@ export default function SendSecretMessagePage({
                           type="button"
                           disabled={isSubmittingReply}
                           onClick={() => handleSendReply(msg.id)}
-                          className="py-1 px-3 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-sm transition-colors"
+                          className="py-1.5 px-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-sm transition-colors"
                         >
                           {isSubmittingReply ? 'Menyimpan...' : 'Kirim Balasan'}
                         </button>
@@ -511,15 +528,24 @@ export default function SendSecretMessagePage({
           )}
         </div>
 
-        <div className="pt-3 text-center border-t border-stone-300">
+        <div className="pt-4 text-center border-t border-stone-300">
           <Link
             href="/"
-            className="text-xs text-stone-600 hover:text-stone-900 font-bold underline"
+            className="text-xs sm:text-sm text-stone-600 hover:text-stone-900 font-bold underline"
           >
             Ingin punya link BisikLagu sendiri? Buat di sini
           </Link>
         </div>
       </BinderNotebook>
+
+      {/* Story Exporter Modal */}
+      {selectedMessageForStory && (
+        <StoryExporterModal
+          message={selectedMessageForStory}
+          recipientName={user.name}
+          onClose={() => setSelectedMessageForStory(null)}
+        />
+      )}
     </main>
   );
 }

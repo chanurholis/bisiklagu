@@ -45,15 +45,15 @@ export default function StoryCard({
   // Helper theme style configs for Cool, Lucu, Romantis visual themes
   const getThemeStyles = () => {
     switch (activeTheme) {
-      case 'pastel_love': // Romantis & Soft Pink
+          case 'pastel_love': // Romantis & Soft Pink
         return {
           wrapper: 'bg-[#fff1f2] text-rose-950 border-4 border-rose-400',
           badge: 'bg-rose-200 text-rose-900 border-rose-300',
           badgeLabel: 'Romantis & Manis',
           messageBox: 'bg-[#ffe4e6] border border-rose-300 text-rose-950',
           messageTitle: 'text-rose-700',
-          messageFont: 'font-handwriting text-2xl font-bold',
-          lyricBox: 'bg-white/80 border border-rose-200 text-rose-900',
+          messageFont: 'font-handwriting text-xl sm:text-2xl font-bold',
+          lyricBox: 'bg-white/90 border border-rose-300 text-rose-950',
           songBox: 'bg-white border border-rose-300 hover:border-rose-400',
           songTitle: 'text-rose-950',
           songSub: 'text-rose-700',
@@ -160,13 +160,13 @@ export default function StoryCard({
       case 'paper_binder':
       default: // Paper Binder Classic Aesthetic
         return {
-          wrapper: 'bg-[#faf7f2] text-stone-900 border-4 border-stone-900',
+          wrapper: 'paper-texture text-stone-900 border-4 border-stone-900',
           badge: 'bg-amber-100 text-amber-950 border-amber-300',
           badgeLabel: 'Buku Binder',
-          messageBox: 'bg-[#fef08a] border border-amber-400 text-stone-950',
+          messageBox: 'paper-texture-card border border-amber-400 text-stone-950',
           messageTitle: 'text-amber-900',
-          messageFont: 'font-handwriting text-2xl font-bold',
-          lyricBox: 'bg-[#e5dec9] border border-stone-400 text-stone-900',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'paper-texture-kraft border border-stone-400 text-stone-950',
           songBox: 'bg-white border border-stone-400 hover:border-stone-800',
           songTitle: 'text-stone-900',
           songSub: 'text-stone-600',
@@ -203,7 +203,7 @@ export default function StoryCard({
             {st.decorator}
           </span>
           <div>
-            <span className="font-handwriting text-xl font-bold tracking-tight block leading-none">
+            <span className="font-body text-base font-extrabold tracking-tight block leading-none">
               BisikLagu
             </span>
             <span className="text-[10px] opacity-75 font-semibold">{domain}</span>
@@ -230,10 +230,10 @@ export default function StoryCard({
         {/* Selected Lyric Quote */}
         {message.selected_lyrics && (
           <div className={`p-3 rounded-sm ${st.lyricBox}`}>
-            <span className={`text-[10px] font-bold uppercase block mb-0.5 opacity-80`}>
-              Kutipan Lirik Pilihan
+            <span className="text-[10px] font-bold uppercase block mb-1 opacity-80 tracking-wider">
+              Lirik:
             </span>
-            <p className="font-handwriting text-base font-bold italic border-l-2 border-current pl-2">
+            <p className="font-body text-xs sm:text-sm font-medium italic border-l-2 border-current pl-2 py-0.5 leading-normal">
               "{message.selected_lyrics}"
             </p>
           </div>
@@ -281,11 +281,11 @@ export default function StoryCard({
 
         {/* Public Reply Box (if present) */}
         {message.reply_text && (
-          <div className="p-3 bg-stone-900 text-stone-100 border border-amber-400 rounded-sm shadow-md space-y-0.5">
-            <span className="text-[9px] font-bold text-amber-300 uppercase block tracking-wider">
+          <div className="p-3 bg-stone-900 text-stone-100 border border-amber-400 rounded-sm shadow-md space-y-1">
+            <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">
               Balasan {recipientName}:
             </span>
-            <p className="font-handwriting text-base font-bold text-amber-100">
+            <p className="font-handwriting text-lg sm:text-xl font-bold text-amber-100 leading-snug">
               "{message.reply_text}"
             </p>
           </div>
