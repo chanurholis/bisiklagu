@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByUsername, getMessagesByUsername, createMessage } from '@/lib/dbHelper';
+import { getUserByUsername, getMessagesByUsername, getRecentPublicMessages, createMessage } from '@/lib/dbHelper';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('username');
   const pin = searchParams.get('pin');
   const isPublic = searchParams.get('public') === 'true';
+  const isRecent = searchParams.get('recent') === 'true';
+
+  if (isRecent) {
+    try {
+      const recentMessages = await getRecentPublicMessages(6);
+      // Hide exact target username for anonymity & CTA attraction
+      const sanitized = recentMessages.map((m) => ({
+        ...m,
+        username: 'Penerima Anonim',
+      }));
+      return NextResponse.json({ messages: sanitized });
+    } catch (err) {
+      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+  }
 
   if (!username) {
     return NextResponse.json({ error: 'Username parameter required' }, { status: 400 });

@@ -33,18 +33,12 @@ export default function BinderNotebook({
               </span>
             </Link>
 
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold">
+            <div className="flex items-center">
               <Link
-                href="/u/demo"
-                className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-900 border border-stone-800 rounded-sm transition-colors"
+                href="/create"
+                className="px-3.5 py-1.5 bg-stone-900 hover:bg-stone-800 text-stone-100 text-xs sm:text-sm font-bold rounded-sm transition-colors shadow-xs"
               >
-                Demo
-              </Link>
-              <Link
-                href="/u/demo/inbox"
-                className="px-3 py-1.5 bg-amber-900 hover:bg-amber-800 text-amber-100 border border-amber-950 rounded-sm transition-colors"
-              >
-                Inbox
+                Buat Link
               </Link>
             </div>
           </div>

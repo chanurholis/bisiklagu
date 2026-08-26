@@ -2,77 +2,120 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import BinderNotebook from '@/components/BinderNotebook';
-import confetti from 'canvas-confetti';
+import { SecretMessage } from '@/types';
 
 export default function Home() {
-  const router = useRouter();
+  const [recentMessages, setRecentMessages] = useState<SecretMessage[]>([]);
+  const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
+  const [audioObj, setAudioObj] = useState<HTMLAudioElement | null>(null);
 
-  const [domain, setDomain] = useState('bisiklagu.com');
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [pin, setPin] = useState('');
-  const [bioPrompt, setBioPrompt] = useState('Kirimkan pesan rahasia & lagu favoritmu!');
-
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [createdUser, setCreatedUser] = useState<any | null>(null);
+  const fallbackSampleMessages: SecretMessage[] = [
+    {
+      id: 'sample_1',
+      username: 'Penerima Anonim',
+      sender_alias: 'Pengagum Rahasia',
+      message_text: 'Jujur aku selalu suka senyum kamu kalau pas lagi dengerin lagu ini di kelas.',
+      song_title: 'Satu Bulan',
+      song_artist: 'Bernadya',
+      song_album_cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/4a/12/37/4a1237c1-0c58-967b-1f7d-0e42ec16ebfa/cover.jpg/600x600bb.jpg',
+      song_preview_url: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo112/v4/21/58/05/21580556-9a2e-ff62-43bb-510065a7702f/mzaf_16390886576882264971.plus.aac.p.m4a',
+      selected_lyrics: 'Belum siap kau berpindah...',
+      theme_style: 'paper_binder',
+      is_read: 0,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'sample_2',
+      username: 'Penerima Anonim',
+      sender_alias: 'Seseorang dari Masa Lalu',
+      message_text: 'Kira-kira kamu masih inget lagu kenangan kita waktu hujan di kafe waktu itu gak ya?',
+      song_title: 'Untungnya, Hidup Harus Terus Berjalan',
+      song_artist: 'Bernadya',
+      song_album_cover: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6b/bc/25/6bbc250f-2b73-0186-2187-b67ea9a9aa8f/cover.jpg/600x600bb.jpg',
+      song_preview_url: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioVideo221/v4/05/21/98/052198c6-59b9-d227-2c96-180dbdb79b88/mzaf_6565187768565150860.plus.aac.p.m4a',
+      selected_lyrics: 'Untungnya bumi tetap berputar...',
+      theme_style: 'paper_binder',
+      is_read: 0,
+      created_at: new Date().toISOString(),
+    },
+  ];
 
   useEffect(() => {
     document.title = 'BisikLagu - Bisikan Pesan & Melodi Rahasia';
-    if (typeof window !== 'undefined') {
-      setDomain(window.location.host);
-    }
+    fetchRecentMessages();
   }, []);
 
-  const handleCreateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !username || !pin) {
-      setErrorMsg('Mohon lengkapi Nama, Username, dan PIN!');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg('');
-
+  const fetchRecentMessages = async () => {
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          username,
-          pin,
-          bio_prompt: bioPrompt,
-          theme: 'paper_binder',
-          avatar: '🎵',
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Gagal membuat profil. Silakan pilih username lain.');
-        setLoading(false);
-        return;
+      const res = await fetch('/api/messages?recent=true');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.messages && data.messages.length > 0) {
+          setRecentMessages(data.messages);
+        } else {
+          setRecentMessages(fallbackSampleMessages);
+        }
+      } else {
+        setRecentMessages(fallbackSampleMessages);
       }
-
-      setCreatedUser(data.user);
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-    } catch (err) {
-      setErrorMsg('Terjadi kesalahan jaringan');
-    } finally {
-      setLoading(false);
+    } catch (e) {
+      setRecentMessages(fallbackSampleMessages);
     }
   };
 
+  const handleTogglePlayAudio = (msg: SecretMessage, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!msg.song_preview_url) return;
+
+    if (playingMsgId === msg.id) {
+      if (audioObj) {
+        audioObj.pause();
+        setPlayingMsgId(null);
+      }
+      return;
+    }
+
+    if (audioObj) audioObj.pause();
+
+    const newAudio = new Audio(msg.song_preview_url);
+    newAudio.play().catch(() => {});
+    newAudio.onended = () => setPlayingMsgId(null);
+    setAudioObj(newAudio);
+    setPlayingMsgId(msg.id);
+  };
+
   return (
-    <main className="min-h-screen bg-[#1c1917] text-stone-900 flex flex-col justify-center">
+    <main className="min-h-screen bg-[#1c1917] text-stone-900 flex flex-col justify-center py-6 sm:py-10">
       <BinderNotebook
         title="BisikLagu"
         subtitle="Kirim dan terima pesan rahasia lengkap dengan lagu favorit secara anonim."
       >
-        {/* Simple Step Guide for First-time Visitors */}
+        {/* Main Hero Banner with CTA */}
+        <div className="bg-[#fffefb] border border-stone-400 p-5 sm:p-6 rounded-sm text-center space-y-4 shadow-sm my-1">
+          <div className="space-y-2">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-950 px-2.5 py-1 rounded-sm border border-amber-400 inline-block">
+              🎵 Rahasia & Melodi Musik
+            </span>
+            <h2 className="text-xl sm:text-2xl font-black text-stone-900 leading-tight">
+              Ingin Tahu Pesan & Lagu Rahasia yang Ditujukan Untukmu?
+            </h2>
+            <p className="text-xs sm:text-sm text-stone-600 font-medium max-w-lg mx-auto leading-relaxed">
+              Dapatkan link pribadi milikmu secara gratis dan pasang di Bio Instagram, WhatsApp, atau TikTok milikmu.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/create"
+              className="inline-block w-full sm:w-auto py-3.5 px-7 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-sm sm:text-base rounded-sm transition-all shadow-md hover:scale-[1.02]"
+            >
+              ✨ Buat Link Rahasiamu Sekarang
+            </Link>
+          </div>
+        </div>
+
+        {/* Simple Step Guide */}
         <div className="bg-[#e5dec9] p-3.5 sm:p-4 border border-stone-400 rounded-sm text-xs sm:text-sm space-y-2">
           <span className="font-bold text-stone-900 block uppercase tracking-wider text-xs">
             Cara Kerja:
@@ -90,133 +133,100 @@ export default function Home() {
           </div>
         </div>
 
-        {!createdUser ? (
-          <form onSubmit={handleCreateProfile} className="space-y-4 sm:space-y-5 pt-1">
-            <div className="space-y-3.5 sm:space-y-4">
-              {/* Name */}
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-stone-900 block mb-1.5">
-                  Nama Anda
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Alex Pradipta"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#fffefb] border border-stone-400 rounded-sm py-2.5 sm:py-3 px-3.5 text-sm sm:text-base text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 font-medium"
-                />
-              </div>
-
-              {/* Username */}
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-stone-900 block mb-1.5">
-                  Username Link Rahasia
-                </label>
-                <div className="relative flex items-center">
-                  <span className="bg-stone-200 border border-r-0 border-stone-400 py-2.5 sm:py-3 px-3 sm:px-3.5 text-xs sm:text-sm font-bold text-stone-700 rounded-l-sm flex-shrink-0">
-                    {domain}/u/
-                  </span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="alex_music"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                    className="w-full bg-[#fffefb] border border-stone-400 rounded-r-sm py-2.5 sm:py-3 px-3.5 text-sm sm:text-base text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* PIN */}
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-stone-900 block mb-1.5">
-                  PIN Keamanan Inbox (4-8 Angka)
-                </label>
-                <input
-                  type="password"
-                  required
-                  maxLength={8}
-                  placeholder="1234"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  className="w-full bg-[#fffefb] border border-stone-400 rounded-sm py-2.5 sm:py-3 px-3.5 text-sm sm:text-base text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 font-bold tracking-widest"
-                />
-              </div>
-
-              {/* Prompt Message */}
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-stone-900 block mb-1.5">
-                  Pesan Pembuka di Halaman Anda
-                </label>
-                <input
-                  type="text"
-                  value={bioPrompt}
-                  onChange={(e) => setBioPrompt(e.target.value)}
-                  placeholder="Kirimkan pesan rahasia & lagu favoritmu!"
-                  className="w-full bg-[#fffefb] border border-stone-400 rounded-sm py-2.5 sm:py-3 px-3.5 text-sm sm:text-base text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 font-medium"
-                />
-              </div>
-            </div>
-
-            {errorMsg && (
-              <div className="p-3 bg-rose-100 border border-rose-400 rounded-sm text-xs sm:text-sm text-rose-800 font-bold text-center">
-                {errorMsg}
-              </div>
-            )}
-
-            {/* Create Link Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 sm:py-4 px-4 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-sm sm:text-base rounded-sm transition-colors disabled:opacity-50 shadow-md"
-            >
-              {loading ? 'Membuat Link...' : 'Buat Link BisikLagu'}
-            </button>
-          </form>
-        ) : (
-          /* Created Success Screen */
-          <div className="bg-[#fffefb] border border-stone-400 p-5 sm:p-6 rounded-sm space-y-4 text-center animate-fade-in my-2">
-            <h2 className="font-handwriting text-3xl font-bold text-stone-900">
-              Link Berhasil Dibuat
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-600">
-              Bagikan link di bawah ini agar orang lain bisa mengirimi Anda pesan & lagu rahasia.
-            </p>
-
-            <div className="bg-[#e5dec9] border border-stone-400 p-3.5 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
-              <span className="text-xs sm:text-sm font-bold text-stone-900 break-all">
-                {typeof window !== 'undefined' ? `${window.location.protocol}//${domain}/u/${createdUser.username}` : `https://${domain}/u/${createdUser.username}`}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.protocol}//${domain}/u/${createdUser.username}`);
-                  alert('Link berhasil disalin!');
-                }}
-                className="w-full sm:w-auto py-2 px-4 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-xs sm:text-sm rounded-sm flex-shrink-0"
-              >
-                Salin Link
-              </button>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2.5 justify-center pt-2 text-xs sm:text-sm font-bold">
-              <Link
-                href={`/u/${createdUser.username}`}
-                className="py-2.5 px-4 bg-stone-200 hover:bg-stone-300 text-stone-900 border border-stone-400 rounded-sm text-center"
-              >
-                Lihat Halaman Pengirim
-              </Link>
-              <Link
-                href={`/u/${createdUser.username}/inbox`}
-                className="py-2.5 px-4 bg-amber-900 hover:bg-amber-800 text-amber-100 rounded-sm text-center"
-              >
-                Buka Inbox Saya
-              </Link>
+        {/* CTA Showcase: Bisikan Pesan Rahasia Terbaru (Tujuan Diberahasiakan) */}
+        <div className="pt-4 space-y-4">
+          <div className="flex items-center justify-between border-b border-stone-300 pb-2">
+            <div className="space-y-0.5">
+              <h3 className="font-bold text-base sm:text-lg text-stone-900 flex items-center gap-2">
+                🔥 Bisikan Terbaru <span className="text-xs bg-amber-200 text-amber-950 px-2 py-0.5 rounded-sm border border-amber-400 uppercase tracking-wider font-extrabold">Anonim</span>
+              </h3>
+              <p className="text-xs text-stone-600 font-medium">
+                Pesan & melodi rahasia yang baru saja dikirim pengagum rahasia.
+              </p>
             </div>
           </div>
-        )}
+
+          <div className="space-y-3">
+            {recentMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className="bg-[#fffefb] border border-stone-400 p-4 rounded-sm space-y-2.5 shadow-xs transition-all hover:border-stone-800"
+              >
+                {/* Header info */}
+                <div className="flex items-center justify-between text-xs border-b border-stone-200 pb-2">
+                  <span className="font-bold text-amber-900">
+                    Pesan Rahasia
+                  </span>
+                  <span className="text-[11px] text-stone-500 font-medium">
+                    Dari: {msg.sender_alias || 'Pengagum Rahasia'}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div className="bg-[#faf7f2] p-3 rounded-sm border border-stone-300">
+                  <p className="text-xs sm:text-sm font-semibold text-stone-900 leading-relaxed">
+                    "{msg.message_text}"
+                  </p>
+                </div>
+
+                {/* Song Card */}
+                {msg.song_title && (
+                  <div className="bg-[#e5dec9] p-3 rounded-sm border border-stone-400 flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <img
+                        src={msg.song_album_cover || '/placeholder-music.png'}
+                        alt={msg.song_title}
+                        className="w-10 h-10 rounded-sm object-cover border border-stone-400 flex-shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold text-amber-900 uppercase block">
+                          Lagu Rahasia
+                        </span>
+                        <h4 className="text-xs font-bold text-stone-900 truncate">
+                          {msg.song_title}
+                        </h4>
+                        <p className="text-[11px] text-stone-600 truncate font-medium">{msg.song_artist}</p>
+                      </div>
+                    </div>
+
+                    {msg.song_preview_url && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleTogglePlayAudio(msg, e)}
+                        className="w-7 h-7 rounded-sm bg-stone-900 text-stone-100 text-xs font-bold flex items-center justify-center flex-shrink-0"
+                      >
+                        {playingMsgId === msg.id ? '⏸' : '▶'}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Lyric snippet */}
+                {msg.selected_lyrics && (
+                  <div className="bg-[#faf7f2]/90 p-2.5 rounded-sm border-l-2 border-stone-800 text-xs font-medium italic text-stone-900">
+                    "{msg.selected_lyrics}"
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Prompt CTA to create link */}
+          <div className="bg-stone-900 text-stone-100 p-5 rounded-sm text-center space-y-3 border border-stone-800 shadow-md">
+            <h4 className="font-bold text-sm sm:text-base text-amber-300">
+              Mulai terima pesan rahasia & rekomendasi lagu milikmu sekarang!
+            </h4>
+            <p className="text-xs text-stone-300">
+              Proses pembuatan link hanya memakan waktu 5 detik gratis.
+            </p>
+            <Link
+              href="/create"
+              className="inline-block py-2.5 px-6 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs sm:text-sm rounded-sm transition-colors"
+            >
+              ✨ Buat Link Rahasiamu Sekarang
+            </Link>
+          </div>
+        </div>
       </BinderNotebook>
     </main>
   );

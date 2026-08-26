@@ -42,136 +42,209 @@ export default function StoryCard({
     }
   };
 
-  // Helper theme style configs for Cool, Lucu, Romantis visual themes
+  // Helper theme style configs with high aesthetic depth & contrast
   const getThemeStyles = () => {
     switch (activeTheme) {
-          case 'pastel_love': // Romantis & Soft Pink
+      case 'pastel_love': // Romantis & Soft Pink Dream
         return {
-          wrapper: 'bg-[#fff1f2] text-rose-950 border-4 border-rose-400',
-          badge: 'bg-rose-200 text-rose-900 border-rose-300',
+          wrapper: 'bg-gradient-to-br from-[#fff0f3] via-[#ffe4e6] to-[#fecdd3] text-rose-950 border-4 border-rose-400/90 shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-rose-300/30 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-rose-400/20 blur-2xl pointer-events-none" />
+              <div className="absolute top-16 right-6 text-rose-300/60 text-2xl select-none">💖</div>
+              <div className="absolute bottom-24 left-6 text-rose-300/60 text-xl select-none">✨</div>
+            </>
+          ),
+          badge: 'bg-rose-200/90 text-rose-900 border-rose-300/80 shadow-xs',
           badgeLabel: 'Romantis & Manis',
-          messageBox: 'bg-[#ffe4e6] border border-rose-300 text-rose-950',
-          messageTitle: 'text-rose-700',
-          messageFont: 'font-handwriting text-xl sm:text-2xl font-bold',
-          lyricBox: 'bg-white/90 border border-rose-300 text-rose-950',
-          songBox: 'bg-white border border-rose-300 hover:border-rose-400',
+          messageBox: 'bg-white/85 backdrop-blur-md border border-rose-300/80 text-rose-950 shadow-md',
+          messageTitle: 'text-rose-700 font-bold',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-rose-50/90 border border-rose-300/70 text-rose-900',
+          songBox: 'bg-white/90 border border-rose-300 hover:border-rose-400 shadow-sm',
           songTitle: 'text-rose-950',
           songSub: 'text-rose-700',
-          buttonBg: 'bg-rose-600 text-white',
-          footerTag: 'bg-rose-900 text-rose-100',
+          buttonBg: 'bg-rose-600 text-white shadow-sm',
+          footerTag: 'bg-rose-900 text-rose-100 shadow-sm',
           decorator: '💖',
         };
-      case 'retro_vinyl': // Cool Vintage Vinyl
+
+      case 'retro_vinyl': // Vintage Vinyl Record & Warm Brass
         return {
-          wrapper: 'bg-[#1c1917] text-amber-100 border-4 border-amber-600',
-          badge: 'bg-amber-950 text-amber-300 border-amber-700',
+          wrapper: 'bg-gradient-to-br from-[#29221d] via-[#1c1815] to-[#120f0d] text-amber-100 border-4 border-amber-600/80 shadow-2xl',
+          bgDecoration: (
+            <>
+              {/* Vinyl Disk Graphic Accent */}
+              <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-64 rounded-full border-[14px] border-[#362e28] bg-[#171310] opacity-35 flex items-center justify-center pointer-events-none">
+                <div className="w-40 h-40 rounded-full border-4 border-amber-900/40 border-dashed" />
+                <div className="w-16 h-16 rounded-full bg-amber-600/40 border-2 border-amber-500" />
+              </div>
+              <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-amber-700/20 blur-2xl pointer-events-none" />
+            </>
+          ),
+          badge: 'bg-amber-950/90 text-amber-300 border-amber-700/80 shadow-xs',
           badgeLabel: 'Retro Vinyl',
-          messageBox: 'bg-[#2e2621] border border-amber-700 text-amber-100',
-          messageTitle: 'text-amber-400',
-          messageFont: 'font-serif text-xl font-bold italic',
-          lyricBox: 'bg-amber-950/70 border border-amber-800 text-amber-200',
-          songBox: 'bg-[#26201c] border border-amber-700 hover:border-amber-500',
+          messageBox: 'bg-[#332a24]/90 backdrop-blur-md border border-amber-700/70 text-amber-100 shadow-lg',
+          messageTitle: 'text-amber-400 font-bold',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-[#231d18]/90 border border-amber-800/80 text-amber-200',
+          songBox: 'bg-[#3a3029] border border-amber-700/80 hover:border-amber-500 shadow-md',
           songTitle: 'text-amber-100',
           songSub: 'text-amber-400',
-          buttonBg: 'bg-amber-600 text-stone-950',
-          footerTag: 'bg-amber-500 text-stone-950',
+          buttonBg: 'bg-amber-500 text-stone-950 font-black shadow-sm',
+          footerTag: 'bg-amber-500 text-stone-950 shadow-sm',
           decorator: '📻',
         };
-      case 'sunset': // Romantis Warm Sunset
+
+      case 'sunset': // Sunset Glow & Warm Amber
         return {
-          wrapper: 'bg-[#431407] text-orange-100 border-4 border-orange-500',
-          badge: 'bg-orange-950 text-orange-300 border-orange-700',
+          wrapper: 'bg-gradient-to-br from-[#451a03] via-[#7c2d12] to-[#9a3412] text-orange-100 border-4 border-orange-500/90 shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-orange-400/25 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/20 blur-2xl pointer-events-none" />
+              <div className="absolute top-20 left-4 text-orange-300/30 text-3xl select-none">🌅</div>
+            </>
+          ),
+          badge: 'bg-orange-950/90 text-orange-300 border-orange-700/80 shadow-xs',
           badgeLabel: 'Sunset Glow',
-          messageBox: 'bg-[#7c2d12] border border-orange-500 text-orange-50',
-          messageTitle: 'text-orange-300',
-          messageFont: 'font-handwriting text-2xl font-bold',
-          lyricBox: 'bg-[#9a3412] border border-orange-600 text-orange-200',
-          songBox: 'bg-[#571c0c] border border-orange-600 hover:border-orange-400',
+          messageBox: 'bg-[#9a3412]/90 backdrop-blur-md border border-orange-500/80 text-orange-50 shadow-lg',
+          messageTitle: 'text-amber-300 font-bold',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-[#7c2d12]/90 border border-orange-600/80 text-orange-200',
+          songBox: 'bg-[#6c230e] border border-orange-500/80 hover:border-orange-400 shadow-md',
           songTitle: 'text-orange-100',
           songSub: 'text-orange-300',
-          buttonBg: 'bg-orange-500 text-stone-950',
-          footerTag: 'bg-orange-400 text-stone-950',
+          buttonBg: 'bg-amber-400 text-stone-950 font-black shadow-sm',
+          footerTag: 'bg-amber-400 text-stone-950 shadow-sm',
           decorator: '🌇',
         };
-      case 'neon_dark': // Cool OLED Cyber
+
+      case 'neon_dark': // Cyber OLED & Neon Emerald Aura
         return {
-          wrapper: 'bg-[#09090b] text-emerald-100 border-4 border-emerald-500',
-          badge: 'bg-emerald-950 text-emerald-400 border-emerald-800',
+          wrapper: 'bg-[#09090b] text-emerald-100 border-4 border-emerald-500/90 shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-emerald-600/15 blur-3xl pointer-events-none" />
+              {/* Equalizer lines decoration */}
+              <div className="absolute top-16 right-6 flex items-end gap-1 opacity-25 pointer-events-none">
+                <div className="w-1 h-5 bg-emerald-400 rounded-full animate-pulse" />
+                <div className="w-1 h-8 bg-emerald-400 rounded-full animate-pulse" />
+                <div className="w-1 h-3 bg-emerald-400 rounded-full animate-pulse" />
+                <div className="w-1 h-6 bg-emerald-400 rounded-full animate-pulse" />
+              </div>
+            </>
+          ),
+          badge: 'bg-emerald-950/90 text-emerald-400 border-emerald-800/80 shadow-xs',
           badgeLabel: 'OLED Cyber',
-          messageBox: 'bg-[#052e16] border border-emerald-600 text-emerald-100',
-          messageTitle: 'text-emerald-400',
-          messageFont: 'font-mono text-lg font-bold tracking-tight',
-          lyricBox: 'bg-[#14532d]/80 border border-emerald-700 text-emerald-200',
-          songBox: 'bg-[#022c22] border border-emerald-600 hover:border-emerald-400',
+          messageBox: 'bg-[#064e3b]/90 backdrop-blur-md border border-emerald-500/70 text-emerald-100 shadow-lg shadow-emerald-950/50',
+          messageTitle: 'text-emerald-400 font-bold tracking-wide',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-[#022c22]/90 border border-emerald-700/80 text-emerald-200',
+          songBox: 'bg-[#065f46] border border-emerald-500/80 hover:border-emerald-400 shadow-md',
           songTitle: 'text-emerald-100',
           songSub: 'text-emerald-400',
-          buttonBg: 'bg-emerald-500 text-stone-950',
-          footerTag: 'bg-emerald-400 text-stone-950',
+          buttonBg: 'bg-emerald-400 text-stone-950 font-black shadow-sm',
+          footerTag: 'bg-emerald-400 text-stone-950 shadow-sm',
           decorator: '⚡',
         };
-      case 'glassmorphism': // Cool Dark Glass
+
+      case 'glassmorphism': // Midnight Glass & Royal Sapphire Aura
         return {
-          wrapper: 'bg-[#0f172a] text-sky-100 border-4 border-sky-500',
-          badge: 'bg-sky-950 text-sky-300 border-sky-800',
+          wrapper: 'bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#090d16] text-sky-100 border-4 border-sky-500/90 shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-indigo-500/30 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-sky-500/25 blur-3xl pointer-events-none" />
+              <div className="absolute top-16 right-6 text-sky-300/40 text-2xl select-none">✨</div>
+            </>
+          ),
+          badge: 'bg-sky-950/90 text-sky-300 border-sky-700/80 shadow-xs',
           badgeLabel: 'Dark Glass',
-          messageBox: 'bg-[#1e293b] border border-sky-600 text-sky-100',
-          messageTitle: 'text-sky-400',
-          messageFont: 'font-body text-xl font-semibold',
-          lyricBox: 'bg-[#0f172a]/90 border border-sky-700 text-sky-200',
-          songBox: 'bg-[#1e293b] border border-sky-600 hover:border-sky-400',
+          messageBox: 'bg-white/10 backdrop-blur-lg border border-white/20 text-sky-100 shadow-xl',
+          messageTitle: 'text-sky-300 font-bold',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-sky-950/60 border border-sky-700/70 text-sky-200',
+          songBox: 'bg-white/10 backdrop-blur-md border border-sky-500/50 hover:border-sky-400 shadow-md',
           songTitle: 'text-sky-100',
           songSub: 'text-sky-300',
-          buttonBg: 'bg-sky-500 text-stone-950',
-          footerTag: 'bg-sky-400 text-stone-950',
+          buttonBg: 'bg-sky-400 text-stone-950 font-black shadow-sm',
+          footerTag: 'bg-sky-400 text-stone-950 shadow-sm',
           decorator: '💎',
         };
-      case 'spotify': // Minimalist Cool Spotify
+
+      case 'spotify': // Spotify Lyric Card Aesthetic
         return {
-          wrapper: 'bg-[#121212] text-white border-4 border-[#1db954]',
-          badge: 'bg-[#181818] text-[#1db954] border-stone-800',
+          wrapper: 'bg-gradient-to-b from-[#1e1e1e] via-[#121212] to-[#0a0a0a] text-white border-4 border-[#1db954] shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-[#1db954]/20 blur-3xl pointer-events-none" />
+              {/* Spotify soundwave visualizer graphic */}
+              <div className="absolute top-16 right-6 flex items-end gap-1 opacity-40 pointer-events-none">
+                <div className="w-1 h-3 bg-[#1db954] rounded-full" />
+                <div className="w-1 h-7 bg-[#1db954] rounded-full" />
+                <div className="w-1 h-4 bg-[#1db954] rounded-full" />
+                <div className="w-1 h-8 bg-[#1db954] rounded-full" />
+                <div className="w-1 h-5 bg-[#1db954] rounded-full" />
+              </div>
+            </>
+          ),
+          badge: 'bg-[#181818] text-[#1db954] border-[#1db954]/50 shadow-xs',
           badgeLabel: 'Spotify Lyric',
-          messageBox: 'bg-[#282828] border border-stone-700 text-white',
-          messageTitle: 'text-[#1db954]',
-          messageFont: 'font-body text-xl font-extrabold',
-          lyricBox: 'bg-[#181818] border border-stone-800 text-stone-300',
-          songBox: 'bg-[#282828] border border-stone-700 hover:border-[#1db954]',
+          messageBox: 'bg-[#282828] border border-stone-700 text-white shadow-lg',
+          messageTitle: 'text-[#1db954] font-bold tracking-wide',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-[#181818] border border-stone-800 text-stone-200',
+          songBox: 'bg-[#282828] border border-stone-700 hover:border-[#1db954] shadow-md',
           songTitle: 'text-white',
           songSub: 'text-[#1db954]',
-          buttonBg: 'bg-[#1db954] text-black',
-          footerTag: 'bg-[#1db954] text-black',
+          buttonBg: 'bg-[#1db954] text-black font-black shadow-sm',
+          footerTag: 'bg-[#1db954] text-black shadow-sm',
           decorator: '🎵',
         };
-      case 'cyberpunk': // Lucu & Vibrant Electric
+
+      case 'cyberpunk': // Electric Pop & Vibrant Purple
         return {
-          wrapper: 'bg-[#3b0764] text-yellow-100 border-4 border-yellow-400',
-          badge: 'bg-purple-950 text-yellow-300 border-yellow-500',
+          wrapper: 'bg-gradient-to-br from-[#3b0764] via-[#581c87] to-[#2e1065] text-yellow-100 border-4 border-yellow-400 shadow-2xl',
+          bgDecoration: (
+            <>
+              <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-yellow-400/25 blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-fuchsia-500/25 blur-3xl pointer-events-none" />
+              <div className="absolute top-16 right-6 text-yellow-300/50 text-2xl select-none">⚡</div>
+            </>
+          ),
+          badge: 'bg-purple-950/90 text-yellow-300 border-yellow-500/80 shadow-xs',
           badgeLabel: 'Electric Pop',
-          messageBox: 'bg-[#581c87] border border-yellow-400 text-yellow-100',
-          messageTitle: 'text-yellow-400',
-          messageFont: 'font-handwriting text-2xl font-black',
-          lyricBox: 'bg-[#6b21a8] border border-yellow-500 text-yellow-200',
-          songBox: 'bg-[#4c1d95] border border-yellow-400 hover:border-yellow-300',
+          messageBox: 'bg-[#6b21a8]/90 backdrop-blur-md border border-yellow-400/80 text-yellow-100 shadow-lg',
+          messageTitle: 'text-yellow-400 font-bold',
+          messageFont: 'font-body text-base font-bold',
+          lyricBox: 'bg-[#581c87]/90 border border-yellow-500/80 text-yellow-200',
+          songBox: 'bg-[#4c1d95] border border-yellow-400 hover:border-yellow-300 shadow-md',
           songTitle: 'text-yellow-100',
           songSub: 'text-yellow-300',
-          buttonBg: 'bg-yellow-400 text-purple-950',
-          footerTag: 'bg-yellow-400 text-purple-950',
+          buttonBg: 'bg-yellow-400 text-purple-950 font-black shadow-sm',
+          footerTag: 'bg-yellow-400 text-purple-950 shadow-sm',
           decorator: '✨',
         };
+
       case 'paper_binder':
-      default: // Paper Binder Classic Aesthetic
+      default: // Paper Binder Classic Warm Texture
         return {
-          wrapper: 'paper-texture text-stone-900 border-4 border-stone-900',
-          badge: 'bg-amber-100 text-amber-950 border-amber-300',
+          wrapper: 'paper-texture text-stone-900 border-4 border-stone-900 shadow-2xl',
+          bgDecoration: null,
+          badge: 'bg-amber-100/90 text-amber-950 border-amber-400/80 shadow-xs',
           badgeLabel: 'Buku Binder',
-          messageBox: 'paper-texture-card border border-amber-400 text-stone-950',
-          messageTitle: 'text-amber-900',
+          messageBox: 'paper-texture-card border border-amber-400/90 text-stone-950 shadow-md',
+          messageTitle: 'text-amber-900 font-bold',
           messageFont: 'font-body text-base font-bold',
-          lyricBox: 'paper-texture-kraft border border-stone-400 text-stone-950',
-          songBox: 'bg-white border border-stone-400 hover:border-stone-800',
+          lyricBox: 'paper-texture-kraft border border-stone-400/80 text-stone-950',
+          songBox: 'bg-white/95 border border-stone-400 hover:border-stone-800 shadow-sm',
           songTitle: 'text-stone-900',
           songSub: 'text-stone-600',
-          buttonBg: 'bg-stone-900 text-stone-100',
-          footerTag: 'bg-stone-900 text-stone-100',
+          buttonBg: 'bg-stone-900 text-stone-100 font-bold shadow-sm',
+          footerTag: 'bg-stone-900 text-stone-100 shadow-sm',
           decorator: '📒',
         };
     }
@@ -182,8 +255,11 @@ export default function StoryCard({
   return (
     <div
       id="story-card-content"
-      className={`relative w-[340px] sm:w-[360px] h-[600px] sm:h-[640px] rounded-sm overflow-hidden flex flex-col justify-between p-5 sm:p-6 select-none shadow-xl ${st.wrapper}`}
+      className={`relative w-[340px] sm:w-[360px] h-[600px] sm:h-[640px] rounded-sm overflow-hidden flex flex-col justify-between p-5 sm:p-6 select-none ${st.wrapper}`}
     >
+      {/* Background Graphic Decoration */}
+      {st.bgDecoration}
+
       {/* Decorative notebook margin for paper binder */}
       {activeTheme === 'paper_binder' && (
         <>
@@ -199,7 +275,7 @@ export default function StoryCard({
       {/* Header Bar */}
       <div className={`relative z-10 flex items-center justify-between border-b pb-3 ${activeTheme === 'paper_binder' ? 'pl-6 border-stone-300' : 'border-current/20'}`}>
         <div className="flex items-center gap-2">
-          <span className="w-7 h-7 bg-stone-900 text-stone-100 flex items-center justify-center font-bold text-xs rounded-sm">
+          <span className="w-7 h-7 bg-stone-900 text-stone-100 flex items-center justify-center font-bold text-xs rounded-sm shadow-xs">
             {st.decorator}
           </span>
           <div>
@@ -210,7 +286,7 @@ export default function StoryCard({
           </div>
         </div>
 
-        <div className={`px-2 py-0.5 border text-[10px] font-bold rounded-sm ${st.badge}`}>
+        <div className={`px-2.5 py-0.5 border text-[10px] font-bold rounded-sm ${st.badge}`}>
           {st.badgeLabel}
         </div>
       </div>
@@ -248,7 +324,7 @@ export default function StoryCard({
             <img
               src={message.song_album_cover || '/placeholder-music.png'}
               alt={message.song_title}
-              className="w-12 h-12 rounded-sm object-cover border border-stone-400 flex-shrink-0"
+              className="w-12 h-12 rounded-sm object-cover border border-stone-400 flex-shrink-0 shadow-xs"
             />
 
             <div className="flex-1 min-w-0">
@@ -274,7 +350,7 @@ export default function StoryCard({
 
         {/* Sender Hint */}
         {message.hint_sender && (
-          <div className={`text-[11px] text-center font-bold py-1 px-3 border rounded-sm self-center ${st.badge}`}>
+          <div className={`text-[11px] text-center font-bold py-1 px-3 border rounded-sm self-center shadow-xs ${st.badge}`}>
             Petunjuk: {message.hint_sender}
           </div>
         )}
@@ -285,7 +361,7 @@ export default function StoryCard({
             <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">
               Balasan {recipientName}:
             </span>
-            <p className="font-handwriting text-lg sm:text-xl font-bold text-amber-100 leading-snug">
+            <p className="font-body text-xs sm:text-sm font-semibold text-amber-100 leading-normal">
               "{message.reply_text}"
             </p>
           </div>

@@ -89,6 +89,34 @@ export async function createUser(user: {
 // MESSAGE DATABASE OPERATIONS
 // ==========================================
 
+export async function getRecentPublicMessages(limit = 6): Promise<SecretMessage[]> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Supabase getRecentPublicMessages error:', error);
+      return [];
+    }
+    return (data as SecretMessage[]) || [];
+  }
+
+  // SQLite Fallback
+  try {
+    const db = getDb();
+    const msgs = db
+      .prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT ?')
+      .all(limit);
+    return (msgs as SecretMessage[]) || [];
+  } catch (err) {
+    console.error('SQLite getRecentPublicMessages error:', err);
+    return [];
+  }
+}
+
 export async function getMessagesByUsername(username: string): Promise<SecretMessage[]> {
   if (isSupabaseConfigured && supabase) {
     const { data, error } = await supabase
