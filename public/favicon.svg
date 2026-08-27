@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Dark Background Container with Smooth Rounded Corners -->
+  <rect width="512" height="512" rx="128" fill="#1c1917" />
+  
+  <!-- Outer Amber Accent Border Line -->
+  <rect x="24" y="24" width="464" height="464" rx="104" fill="none" stroke="#f59e0b" stroke-width="20" stroke-opacity="0.9" />
+
+  <!-- Stylized Letter 'B' with Musical Eighth Note Hook -->
+  <g transform="translate(30, 20)">
+    <!-- Base B Shape -->
+    <path d="M 140,110 L 255,110 C 315,110 355,140 355,190 C 355,230 325,260 275,270 C 335,285 370,325 370,375 C 370,435 320,470 245,470 L 140,470 Z" fill="#faf7f2" />
+    
+    <!-- Inner Cutouts for B loops -->
+    <path d="M 205,165 L 250,165 C 280,165 300,178 300,200 C 300,222 280,235 250,235 L 205,235 Z" fill="#1c1917" />
+    <path d="M 205,320 L 255,320 C 290,320 315,335 315,362 C 315,390 290,405 255,405 L 205,405 Z" fill="#1c1917" />
+    
+    <!-- Music Note Accent (Golden Note in Top Right Corner) -->
+    <circle cx="375" cy="130" r="30" fill="#f59e0b" />
+    <rect x="397" y="55" width="16" height="75" rx="8" fill="#f59e0b" />
+    <path d="M 405,55 Q 445,45 445,95 Q 415,80 405,85 Z" fill="#f59e0b" />
+  </g>
+</svg>

@@ -8,6 +8,11 @@ export const metadata: Metadata = {
     template: "%s | BisikLagu",
   },
   description: "Kirim dan terima pesan rahasia lengkap dengan lagu favorit secara anonim.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "BisikLagu - Bisikan Pesan & Melodi Rahasia",
     description: "Kirim dan terima pesan rahasia lengkap dengan lagu favorit secara anonim.",
