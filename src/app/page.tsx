@@ -87,6 +87,11 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#1c1917] text-stone-900 flex flex-col justify-center py-6 sm:py-10">
+      {/* Hidden H1 for SEO Crawler Keyword Relevance */}
+      <h1 className="sr-only">
+        BisikLagu - Platform Pesan Rahasia & Recomendasi Melodi Musik Anonim
+      </h1>
+
       <BinderNotebook
         title="BisikLagu"
         subtitle="Kirim dan terima pesan rahasia lengkap dengan lagu favorit secara anonim."
@@ -175,7 +180,7 @@ export default function Home() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <img
                         src={msg.song_album_cover || '/placeholder-music.png'}
-                        alt={msg.song_title}
+                        alt={`Sampul Album ${msg.song_title} - ${msg.song_artist}`}
                         className="w-10 h-10 rounded-sm object-cover border border-stone-400 flex-shrink-0"
                       />
                       <div className="min-w-0">

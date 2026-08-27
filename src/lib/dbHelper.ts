@@ -84,6 +84,33 @@ export async function getUserByUsername(username: string): Promise<User | null> 
   }
 }
 
+export async function getAllUsernames(limit = 100): Promise<{ username: string; created_at?: string }[]> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('username, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Supabase getAllUsernames error:', error);
+      return [];
+    }
+    return data || [];
+  }
+
+  try {
+    const db = getDb();
+    const rows = db
+      .prepare('SELECT username, created_at FROM users ORDER BY created_at DESC LIMIT ?')
+      .all(limit);
+    return (rows as { username: string; created_at?: string }[]) || [];
+  } catch (err) {
+    console.error('SQLite getAllUsernames error:', err);
+    return [];
+  }
+}
+
 export async function createUser(user: {
   id: string;
   username: string;
