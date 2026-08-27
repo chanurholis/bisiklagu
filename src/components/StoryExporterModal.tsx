@@ -35,13 +35,14 @@ export default function StoryExporterModal({
   const [isExporting, setIsExporting] = useState(false);
   const [isVideoExporting, setIsVideoExporting] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const updatedMessage = {
     ...message,
     theme_style: selectedTheme,
   };
 
-  // 1. Client-Side Image Download (100% Identical to Screen View)
+  // 1. Fail-Proof High-Definition (HD) Image Export & Mobile Download
   const handleDownloadPNGClient = async () => {
     const cardEl = document.getElementById('story-card-content');
     if (!cardEl) return;
@@ -49,21 +50,79 @@ export default function StoryExporterModal({
     try {
       setIsExporting(true);
 
+      // Render HD 3x Resolution PNG Data URL
       const dataUrl = await toPng(cardEl, {
         cacheBust: true,
         pixelRatio: 3,
         quality: 1.0,
       });
 
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const fileName = `bisiklagu-kartu-${selectedTheme}-${Date.now()}.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // Priority A: Mobile Web Share API for Mobile Safari & Brave (Opens iOS Native Action Sheet / Save to Photos)
+      if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Kartu Pesan Rahasia - BisikLagu',
+            text: `Kartu rahasia dari BisikLagu untuk @${recipientName}`,
+          });
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+          return;
+        } catch (shareErr: any) {
+          if (shareErr.name === 'AbortError') return; // User cancelled share sheet
+        }
+      }
+
+      // Priority B: Direct Blob Download (Desktop & Supporting Browsers)
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.download = `bisiklagu-kartu-${selectedTheme}-${Date.now()}.png`;
-      link.href = dataUrl;
+      link.download = fileName;
+      link.href = blobUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+
+      // Priority C: Set preview image modal so mobile browser users can long-press to save to photos
+      setPreviewImageUrl(dataUrl);
 
       confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
     } catch (err) {
-      console.error('Failed to export image:', err);
-      alert('Gagal mengunduh gambar. Silakan coba lagi.');
+      console.error('Client export error, trying server fallback:', err);
+      // Fallback: Server-side High-Res Export
+      try {
+        const res = await fetch('/api/export/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message_text: message.message_text,
+            song_title: message.song_title,
+            song_artist: message.song_artist,
+            song_album_cover: message.song_album_cover,
+            selected_lyrics: message.selected_lyrics,
+            sender_alias: message.sender_alias,
+            recipient_name: recipientName,
+            hint_sender: message.hint_sender,
+            username: message.username,
+          }),
+        });
+
+        if (!res.ok) throw new Error('Server export failed');
+        const blob = await res.blob();
+        const serverUrl = URL.createObjectURL(blob);
+        setPreviewImageUrl(serverUrl);
+
+        const a = document.createElement('a');
+        a.href = serverUrl;
+        a.download = `bisiklagu-kartu-hd-${Date.now()}.png`;
+        a.click();
+      } catch (srvErr) {
+        alert('Gagal mengunduh gambar. Silakan coba tahan lama pada layar.');
+      }
     } finally {
       setIsExporting(false);
     }
@@ -311,6 +370,40 @@ export default function StoryExporterModal({
           </div>
         </div>
       </div>
+
+      {/* Image Download Preview Modal for Mobile Browsers */}
+      {previewImageUrl && (
+        <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col items-center justify-center p-4 text-center animate-fade-in">
+          <button
+            type="button"
+            onClick={() => setPreviewImageUrl(null)}
+            className="absolute top-4 right-4 text-stone-400 hover:text-white font-bold text-xl p-2 bg-stone-800 rounded-full"
+          >
+            ✕
+          </button>
+
+          <div className="max-w-xs space-y-3 my-auto">
+            <h4 className="text-sm font-bold text-amber-300">Kartu HD Berhasil Dibuat!</h4>
+            <p className="text-xs text-stone-300">
+              Tekan & tahan gambar di bawah ini untuk menyimpan ke Galeri / Foto HP Anda:
+            </p>
+
+            <img
+              src={previewImageUrl}
+              alt="Kartu HD BisikLagu"
+              className="max-h-[60vh] mx-auto rounded-md shadow-2xl border-2 border-stone-600 object-contain"
+            />
+
+            <button
+              type="button"
+              onClick={() => setPreviewImageUrl(null)}
+              className="py-2 px-6 bg-stone-100 hover:bg-white text-stone-900 font-extrabold text-xs rounded-sm shadow-md transition-colors"
+            >
+              Tutup Preview
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

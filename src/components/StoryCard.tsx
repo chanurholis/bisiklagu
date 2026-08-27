@@ -370,7 +370,14 @@ export default function StoryCard({
             className={`p-3 rounded-sm flex items-center gap-3 cursor-pointer transition-colors shadow-sm ${st.songBox}`}
           >
             <img
-              src={message.song_album_cover || '/placeholder-music.png'}
+              src={
+                message.song_album_cover
+                  ? message.song_album_cover.startsWith('http')
+                    ? `/api/proxy-image?url=${encodeURIComponent(message.song_album_cover)}`
+                    : message.song_album_cover
+                  : '/placeholder-music.png'
+              }
+              crossOrigin="anonymous"
               alt={message.song_title}
               className="w-12 h-12 rounded-sm object-cover border border-stone-400 flex-shrink-0 shadow-xs"
             />
