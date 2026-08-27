@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByUsername, createUser } from '@/lib/dbHelper';
+import { sanitizeInput, isValidUsername, isValidPinFormat } from '@/lib/security';
+import { isRateLimited } from '@/lib/rateLimit';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('username');
+  const rawUsername = searchParams.get('username');
 
-  if (!username) {
+  if (!rawUsername) {
     return NextResponse.json({ error: 'Username parameter required' }, { status: 400 });
   }
 
+  const cleanUsername = rawUsername.trim().toLowerCase();
+
   try {
-    const user = await getUserByUsername(username);
+    const user = await getUserByUsername(cleanUsername);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -24,18 +29,30 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Client IP rate limiting (Max 3 account creations per 5 minutes per IP)
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    if (isRateLimited(ip, 'create_user', 3, 5 * 60000)) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak pendaftaran dari perangkat ini. Silakan coba lagi nanti.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { username, name, pin, bio_prompt, theme, avatar } = body;
 
-    if (!username || !name || !pin) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const cleanedUsername = (username || '').toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
+
+    if (!isValidUsername(cleanedUsername)) {
+      return NextResponse.json(
+        { error: 'Username harus 3-30 karakter (hanya huruf, angka, dan underscore _)' },
+        { status: 400 }
+      );
     }
 
-    const cleanedUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
-
-    if (cleanedUsername.length < 3) {
+    if (!isValidPinFormat(pin)) {
       return NextResponse.json(
-        { error: 'Username minimal 3 karakter (huruf, angka, _)' },
+        { error: 'PIN/Password minimal 4 karakter' },
         { status: 400 }
       );
     }
@@ -48,15 +65,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // XSS Sanitization for text fields
+    const safeName = sanitizeInput(name, 50) || 'Pengguna BisikLagu';
+    const safeBio = sanitizeInput(bio_prompt, 200) || 'Kirimkan pesan rahasia & lagu favoritmu!';
+    const safeTheme = sanitizeInput(theme, 30) || 'paper_binder';
+    const safeAvatar = sanitizeInput(avatar, 10) || '🎵';
+
     const userId = `user_${crypto.randomUUID().slice(0, 8)}`;
     const user = await createUser({
       id: userId,
       username: cleanedUsername,
-      name,
+      name: safeName,
       pin,
-      bio_prompt,
-      theme,
-      avatar,
+      bio_prompt: safeBio,
+      theme: safeTheme,
+      avatar: safeAvatar,
     });
 
     if (!user) {

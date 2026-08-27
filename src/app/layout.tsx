@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
+import NavigationLoader from "@/components/NavigationLoader";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -40,6 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
       </head>
       <body className="min-h-screen bg-[#1c1917] text-[#faf7f2] font-body antialiased">
+        <Suspense fallback={null}>
+          <NavigationLoader />
+        </Suspense>
         {children}
       </body>
     </html>

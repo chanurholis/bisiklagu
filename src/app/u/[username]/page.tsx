@@ -39,20 +39,20 @@ export default function SendSecretMessagePage({
   const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
   const [audioObj, setAudioObj] = useState<HTMLAudioElement | null>(null);
 
-  // Reply Modal State
-  const [replyingMsgId, setReplyingMsgId] = useState<string | null>(null);
-  const [replyInputText, setReplyInputText] = useState('');
-  const [replyPinInput, setReplyPinInput] = useState('');
-  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
-  const [replyError, setReplyError] = useState('');
-
-  // Story Exporter Modal State
-  const [selectedMessageForStory, setSelectedMessageForStory] = useState<SecretMessage | null>(null);
+  // Check if visitor is the owner of this page
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    const savedPin = localStorage.getItem(`bisiklagu_pin_${username}`);
-    if (savedPin) {
-      setReplyPinInput(savedPin);
+    if (typeof window !== 'undefined') {
+      const sessionRaw = localStorage.getItem('bisiklagu_session');
+      if (sessionRaw) {
+        try {
+          const parsed = JSON.parse(sessionRaw);
+          if (parsed?.username?.toLowerCase() === username.toLowerCase()) {
+            setIsOwner(true);
+          }
+        } catch (e) {}
+      }
     }
     fetchData();
   }, [username]);
@@ -147,53 +147,6 @@ export default function SendSecretMessagePage({
     setPlayingMsgId(msg.id);
   };
 
-  const handleSendReply = async (msgId: string) => {
-    if (!replyInputText.trim() || !replyPinInput.trim()) {
-      setReplyError('Isi balasan dan PIN pemilik profil!');
-      return;
-    }
-
-    setIsSubmittingReply(true);
-    setReplyError('');
-
-    try {
-      const res = await fetch(`/api/messages/${msgId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          pin: replyPinInput,
-          reply_text: replyInputText,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setReplyError(data.error || 'PIN salah atau gagal menyimpan balasan.');
-        setIsSubmittingReply(false);
-        return;
-      }
-
-      localStorage.setItem(`bisiklagu_pin_${username}`, replyPinInput);
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === msgId
-            ? { ...m, reply_text: replyInputText, replied_at: new Date().toISOString() }
-            : m
-        )
-      );
-
-      setReplyingMsgId(null);
-      setReplyInputText('');
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
-    } catch (err) {
-      setReplyError('Terjadi kesalahan koneksi.');
-    } finally {
-      setIsSubmittingReply(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#1c1917] flex flex-col items-center justify-center p-4">
@@ -228,6 +181,22 @@ export default function SendSecretMessagePage({
         title={`Profil ${user.name}`}
         subtitle={`"${user.bio_prompt}"`}
       >
+        {/* Owner Quick Inbox Nav Banner */}
+        {isOwner && (
+          <div className="bg-amber-100 border border-amber-400 p-3 sm:p-4 rounded-sm flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-amber-950 shadow-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span>📥</span>
+              <span className="truncate">Anda pemilik halaman ini. Buka inbox untuk membalas & membagikan kartu.</span>
+            </div>
+            <Link
+              href={`/u/${username}/inbox`}
+              className="py-1.5 px-3 bg-stone-900 hover:bg-stone-800 text-stone-100 text-xs font-bold rounded-sm flex-shrink-0 transition-colors"
+            >
+              Buka Inbox
+            </Link>
+          </div>
+        )}
+
         {/* Toggle Form Header Bar */}
         <div className="bg-[#e5dec9] border border-stone-400 p-3 sm:p-3.5 rounded-sm flex items-center justify-between gap-2 text-xs sm:text-sm">
           <div className="font-bold text-stone-900">
@@ -369,17 +338,6 @@ export default function SendSecretMessagePage({
                         • {new Date(msg.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setReplyingMsgId(replyingMsgId === msg.id ? null : msg.id);
-                        setReplyError('');
-                      }}
-                      className="text-amber-900 hover:text-amber-950 text-xs sm:text-sm font-bold underline"
-                    >
-                      {msg.reply_text ? 'Edit Balasan' : 'Balas Pesan'}
-                    </button>
                   </div>
 
                   {/* Secret Message Content */}
@@ -453,73 +411,8 @@ export default function SendSecretMessagePage({
                         )}
                       </div>
                       <p className="text-xs sm:text-sm font-semibold text-stone-950 leading-relaxed">
-                        "{msg.reply_text}"
+                        {msg.reply_text}
                       </p>
-                    </div>
-                  )}
-
-                  {/* Export & Share Button Bar */}
-                  <div className="pt-2 flex items-center justify-end border-t border-stone-200 mt-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedMessageForStory(msg)}
-                      className="py-1.5 px-3 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-xs rounded-sm transition-colors shadow-sm flex items-center gap-1.5"
-                    >
-                      <span>Bagikan Kartu</span>
-                    </button>
-                  </div>
-
-                  {/* Reply Form Modal / Inline Box */}
-                  {replyingMsgId === msg.id && (
-                    <div className="bg-stone-900 text-stone-100 p-4 rounded-sm space-y-3 mt-3 animate-fade-in border border-stone-700">
-                      <h4 className="text-xs sm:text-sm font-bold text-amber-300">
-                        Balas Pesan Ini sebagai {user.name}
-                      </h4>
-
-                      <textarea
-                        rows={2}
-                        required
-                        placeholder="Tuliskan balasan publik kamu di sini..."
-                        value={replyInputText}
-                        onChange={(e) => setReplyInputText(e.target.value)}
-                        className="w-full bg-stone-800 border border-stone-600 rounded-sm p-2.5 text-sm text-stone-100 placeholder-stone-400 focus:outline-none focus:border-amber-400 font-medium"
-                      />
-
-                      <div>
-                        <label className="text-xs font-bold text-stone-300 block mb-1">
-                          PIN Keamanan {user.name}:
-                        </label>
-                        <input
-                          type="password"
-                          maxLength={8}
-                          placeholder="Masukkan PIN..."
-                          value={replyPinInput}
-                          onChange={(e) => setReplyPinInput(e.target.value)}
-                          className="w-full bg-stone-800 border border-stone-600 rounded-sm py-2 px-3 text-sm text-stone-100 tracking-widest focus:outline-none focus:border-amber-400 font-bold"
-                        />
-                      </div>
-
-                      {replyError && (
-                        <p className="text-xs text-rose-400 font-bold">{replyError}</p>
-                      )}
-
-                      <div className="flex justify-end gap-2 text-xs sm:text-sm font-bold pt-1">
-                        <button
-                          type="button"
-                          onClick={() => setReplyingMsgId(null)}
-                          className="py-1.5 px-3.5 bg-stone-700 hover:bg-stone-600 text-stone-200 rounded-sm"
-                        >
-                          Batal
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isSubmittingReply}
-                          onClick={() => handleSendReply(msg.id)}
-                          className="py-1.5 px-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 rounded-sm transition-colors"
-                        >
-                          {isSubmittingReply ? 'Menyimpan...' : 'Kirim Balasan'}
-                        </button>
-                      </div>
                     </div>
                   )}
                 </div>
@@ -537,15 +430,6 @@ export default function SendSecretMessagePage({
           </Link>
         </div>
       </BinderNotebook>
-
-      {/* Story Exporter Modal */}
-      {selectedMessageForStory && (
-        <StoryExporterModal
-          message={selectedMessageForStory}
-          recipientName={user.name}
-          onClose={() => setSelectedMessageForStory(null)}
-        />
-      )}
     </main>
   );
 }

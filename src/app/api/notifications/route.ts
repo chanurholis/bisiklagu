@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByUsername, getUnreadMessageCount, verifyAndUpgradeUserPin } from '@/lib/dbHelper';
+import { isValidUsername } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('username');
+  const rawUsername = searchParams.get('username');
   const pin = searchParams.get('pin');
 
-  if (!username) {
+  if (!rawUsername) {
     return NextResponse.json({ error: 'Username required' }, { status: 400 });
+  }
+
+  const username = rawUsername.trim().toLowerCase();
+
+  if (!isValidUsername(username)) {
+    return NextResponse.json({ unreadCount: 0 });
   }
 
   try {

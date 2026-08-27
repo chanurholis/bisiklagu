@@ -1,45 +1,105 @@
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
-import { SecretMessage, User } from '@/types';
-import StoryExporterModal from '@/components/StoryExporterModal';
+import { useRouter } from 'next/navigation';
 import BinderNotebook from '@/components/BinderNotebook';
+import StoryExporterModal from '@/components/StoryExporterModal';
+import { User, SecretMessage } from '@/types';
 import Link from 'next/link';
 
-export default function InboxPage({
-  params,
-}: {
+interface InboxPageProps {
   params: Promise<{ username: string }>;
-}) {
+}
+
+export default function InboxPage({ params }: InboxPageProps) {
   const { username } = use(params);
+  const router = useRouter();
   const [domain, setDomain] = useState('bisiklagu.com');
-  const [pinInput, setPinInput] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<SecretMessage[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const [selectedMessageForStory, setSelectedMessageForStory] = useState<SecretMessage | null>(null);
   const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
   const [audioObj, setAudioObj] = useState<HTMLAudioElement | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Public reply state
+  const [replyingMsgId, setReplyingMsgId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
+
+  // Active Session token if logged in
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+
   useEffect(() => {
     document.title = `Inbox Catatan @${username} - BisikLagu`;
     if (typeof window !== 'undefined') {
       setDomain(window.location.host);
-    }
-    const savedPin = localStorage.getItem(`bisiklagu_pin_${username}`);
-    if (savedPin) {
-      setPinInput(savedPin);
-      fetchInbox(savedPin);
+
+      // Check session
+      const sessionRaw = localStorage.getItem('bisiklagu_session');
+      if (sessionRaw) {
+        try {
+          const parsed = JSON.parse(sessionRaw);
+          if (parsed?.username?.toLowerCase() === username.toLowerCase() && parsed?.token) {
+            setSessionToken(parsed.token);
+            fetchInboxWithToken(parsed.token);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Check fallback PIN
+      const savedPin = localStorage.getItem(`bisiklagu_pin_${username}`);
+      if (savedPin) {
+        fetchInboxWithPin(savedPin);
+        return;
+      }
+
+      // No active session or PIN -> redirect to login instead of displaying locked screen
+      router.push('/login');
     }
   }, [username]);
 
-  const fetchInbox = async (pinCode: string) => {
+  // Fast token fetch (No bcrypt overhead)
+  const fetchInboxWithToken = async (token: string) => {
     setLoading(true);
-    setErrorMsg('');
+    try {
+      // Fetch user profile info
+      const uRes = await fetch(`/api/users?username=${encodeURIComponent(username)}`);
+      if (uRes.ok) {
+        const uData = await uRes.json();
+        setUser(uData.user);
+      }
+
+      // Fetch inbox messages using Authorization token
+      const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!msgRes.ok) {
+        throw new Error('Sesi telah kadaluarsa');
+      }
+
+      const msgData = await msgRes.json();
+      setMessages(msgData.messages || []);
+    } catch (err) {
+      // Token invalid or expired, check saved PIN fallback or redirect to login
+      const savedPin = localStorage.getItem(`bisiklagu_pin_${username}`);
+      if (savedPin) {
+        fetchInboxWithPin(savedPin);
+      } else {
+        router.push('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Full PIN Authentication & Token Generation
+  const fetchInboxWithPin = async (pinCode: string) => {
+    setLoading(true);
     try {
       const loginRes = await fetch('/api/users/login', {
         method: 'POST',
@@ -48,20 +108,19 @@ export default function InboxPage({
       });
 
       if (!loginRes.ok) {
-        const errData = await loginRes.json();
-        setErrorMsg(errData.error || 'PIN Salah! Akses ditolak.');
-        setIsUnlocked(false);
-        setLoading(false);
+        router.push('/login');
         return;
       }
 
       const loginData = await loginRes.json();
       setUser(loginData.user);
+      setSessionToken(loginData.token);
 
-      // Save logged in user session for navbar & persistent auth
+      // Save logged in user session with token
       const sessionObj = {
         username: loginData.user.username,
         name: loginData.user.name,
+        token: loginData.token,
         pin: pinCode,
         avatar: loginData.user.avatar || '🎵',
       };
@@ -69,21 +128,17 @@ export default function InboxPage({
       localStorage.setItem(`bisiklagu_pin_${username}`, pinCode);
       window.dispatchEvent(new Event('bisiklagu_auth_change'));
 
-      const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}&pin=${encodeURIComponent(pinCode)}`);
+      const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}`, {
+        headers: { Authorization: `Bearer ${loginData.token}` },
+      });
       const msgData = await msgRes.json();
 
       setMessages(msgData.messages || []);
-      setIsUnlocked(true);
     } catch (err) {
-      setErrorMsg('Gagal memuat pesan');
+      router.push('/login');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleUnlock = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchInbox(pinInput);
   };
 
   const handleTogglePlayAudio = (msg: SecretMessage, e: React.MouseEvent) => {
@@ -111,14 +166,69 @@ export default function InboxPage({
     if (!confirm('Apakah Anda yakin ingin menghapus pesan ini?')) return;
 
     try {
-      const res = await fetch(`/api/messages/${msgId}?username=${encodeURIComponent(username)}&pin=${encodeURIComponent(pinInput)}`, {
+      const savedPin = typeof window !== 'undefined' ? localStorage.getItem(`bisiklagu_pin_${username}`) || '' : '';
+      const headers: Record<string, string> = {};
+      if (sessionToken) {
+        headers['Authorization'] = `Bearer ${sessionToken}`;
+      }
+
+      const res = await fetch(`/api/messages/${msgId}?username=${encodeURIComponent(username)}&pin=${encodeURIComponent(savedPin)}`, {
         method: 'DELETE',
+        headers,
       });
+
       if (res.ok) {
         setMessages((prev) => prev.filter((m) => m.id !== msgId));
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Gagal menghapus pesan');
       }
     } catch (err) {
       alert('Gagal menghapus pesan');
+    }
+  };
+
+  const handleSaveReply = async (msgId: string) => {
+    if (!replyText.trim()) return;
+    setSubmittingReply(true);
+
+    try {
+      const savedPin = typeof window !== 'undefined' ? localStorage.getItem(`bisiklagu_pin_${username}`) || '' : '';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (sessionToken) {
+        headers['Authorization'] = `Bearer ${sessionToken}`;
+      }
+
+      const res = await fetch(`/api/messages/${msgId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          username,
+          pin: savedPin,
+          token: sessionToken,
+          reply_text: replyText.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? { ...m, reply_text: resData.reply_text || replyText.trim(), replied_at: new Date().toISOString() }
+              : m
+          )
+        );
+        setReplyingMsgId(null);
+        setReplyText('');
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Gagal menyimpan balasan');
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan koneksi');
+    } finally {
+      setSubmittingReply(false);
     }
   };
 
@@ -132,51 +242,22 @@ export default function InboxPage({
   return (
     <main className="min-h-screen bg-[#1c1917] text-stone-900 flex flex-col justify-center">
       <BinderNotebook
-        title={isUnlocked ? `Inbox ${user?.name || username}` : `Buka Inbox @${username}`}
-        subtitle={isUnlocked ? `${messages.length} Pesan Diterima` : "Masukkan PIN Keamanan"}
+        title={`Inbox Catatan Rahasia`}
+        subtitle={`Pesan & lagu rahasia yang dikirimkan secara anonim untuk @${username}`}
       >
-        {!isUnlocked ? (
-          <div className="bg-[#fffefb] border border-stone-400 p-5 sm:p-6 rounded-sm text-center space-y-4 my-2">
-            <h2 className="font-bold text-xl text-stone-900">PIN Keamanan</h2>
-            <p className="text-xs sm:text-sm text-stone-600">
-              Masukkan PIN untuk membuka pesan milik <span className="font-bold text-stone-900">@{username}</span>
-            </p>
-
-            <form onSubmit={handleUnlock} className="space-y-3.5 max-w-xs mx-auto">
-              <input
-                type="password"
-                required
-                maxLength={8}
-                placeholder="Masukkan PIN..."
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                className="w-full text-center tracking-widest text-lg font-bold bg-[#faf7f2] border border-stone-400 rounded-sm py-2.5 px-3 text-stone-900 focus:outline-none focus:border-stone-900"
-              />
-
-              {errorMsg && (
-                <p className="text-xs sm:text-sm text-rose-700 font-bold">{errorMsg}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-stone-100 font-bold text-xs sm:text-sm rounded-sm transition-colors shadow-md"
-              >
-                {loading ? 'Memverifikasi...' : 'Buka Inbox'}
-              </button>
-            </form>
-
-            <div className="pt-2 border-t border-stone-200">
-              <Link href={`/u/${username}`} className="text-xs sm:text-sm text-stone-600 font-bold underline">
-                Kembali ke Halaman Pengirim
-              </Link>
-            </div>
+        {loading ? (
+          /* Loading State Spinner */
+          <div className="py-16 text-center space-y-3">
+            <div className="w-10 h-10 border-4 border-amber-400 border-t-stone-900 rounded-full animate-spin mx-auto" />
+            <p className="text-xs font-bold text-stone-600">Memuat Inbox Rahasia...</p>
           </div>
         ) : (
-          <div className="space-y-4 pt-1">
-            {/* Top Link Banner */}
-            <div className="bg-[#e5dec9] border border-stone-400 p-3 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs sm:text-sm">
-              <span className="font-bold text-stone-900">
+          /* Unlocked Inbox Messages Feed */
+          /* Unlocked State - Inbox Messages Feed */
+          <div className="space-y-5">
+            {/* Quick Share Link Banner */}
+            <div className="bg-[#e5dec9] border border-stone-400 p-3.5 sm:p-4 rounded-sm flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-stone-900 shadow-xs">
+              <span className="truncate">
                 Link Pengirim: <span className="underline">{domain}/u/{username}</span>
               </span>
               <button
@@ -224,7 +305,7 @@ export default function InboxPage({
 
                     <div className="bg-[#faf7f2] p-3 sm:p-3.5 rounded-sm border border-stone-300">
                       <p className="text-sm sm:text-base font-semibold text-stone-900 leading-relaxed">
-                        "{msg.message_text}"
+                        {msg.message_text}
                       </p>
                     </div>
 
@@ -289,12 +370,63 @@ export default function InboxPage({
                           )}
                         </div>
                         <p className="text-xs sm:text-sm font-semibold text-stone-950 leading-relaxed">
-                          "{msg.reply_text}"
+                          {msg.reply_text}
                         </p>
                       </div>
                     )}
 
-                    <div className="pt-2 flex items-center justify-end border-t border-stone-200 mt-2">
+                    {/* Inline Reply Form */}
+                    {replyingMsgId === msg.id && (
+                      <div className="bg-amber-50 border border-amber-300 p-3 rounded-sm space-y-2 mt-2">
+                        <label className="text-xs font-bold text-stone-900 block">
+                          Tulis Balasan Publik:
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Ketik balasan Anda untuk ditampilkan di profil publik..."
+                          className="w-full text-xs sm:text-sm p-2 border border-stone-400 rounded-sm focus:outline-none focus:border-stone-900"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReplyingMsgId(null);
+                              setReplyText('');
+                            }}
+                            className="py-1 px-3 bg-stone-200 text-stone-800 text-xs font-bold rounded-sm hover:bg-stone-300"
+                          >
+                            Batal
+                          </button>
+                          <button
+                            type="button"
+                            disabled={submittingReply || !replyText.trim()}
+                            onClick={() => handleSaveReply(msg.id)}
+                            className="py-1 px-3 bg-amber-900 text-amber-100 text-xs font-bold rounded-sm hover:bg-amber-800 disabled:opacity-50"
+                          >
+                            {submittingReply ? 'Menyimpan...' : 'Kirim Balasan'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-2 flex items-center justify-between border-t border-stone-200 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (replyingMsgId === msg.id) {
+                            setReplyingMsgId(null);
+                          } else {
+                            setReplyingMsgId(msg.id);
+                            setReplyText(msg.reply_text || '');
+                          }
+                        }}
+                        className="py-1.5 px-3 bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs rounded-sm transition-colors border border-amber-300 flex items-center gap-1.5"
+                      >
+                        <span>💬 {msg.reply_text ? 'Edit Balasan' : 'Balas Publik'}</span>
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => setSelectedMessageForStory(msg)}
