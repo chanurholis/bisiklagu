@@ -13,6 +13,7 @@ interface StoryExporterModalProps {
 }
 
 const THEMES: { id: StoryTheme; label: string; icon: string; tag: string }[] = [
+  { id: 'question_box', label: 'Question Box', icon: '💬', tag: 'Stiker Rahasia' },
   { id: 'paper_binder', label: 'Buku Binder', icon: '📒', tag: 'Classic Paper' },
   { id: 'pastel_love', label: 'Soft Pastel', icon: '🌸', tag: 'Romantis & Manis' },
   { id: 'retro_vinyl', label: 'Retro Vinyl', icon: '📻', tag: 'Vintage Cool' },

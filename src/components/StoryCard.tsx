@@ -45,6 +45,30 @@ export default function StoryCard({
   // Helper theme style configs with high aesthetic depth & contrast
   const getThemeStyles = () => {
     switch (activeTheme) {
+      case 'question_box': // Question Box Speech Bubble Aesthetic
+        return {
+          wrapper: 'bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white border-4 border-[#ee2a7b]/90 shadow-2xl',
+          bgDecoration: (
+            <>
+              {/* Subtle ambient lighting */}
+              <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-pink-500/25 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none" />
+            </>
+          ),
+          badge: 'bg-white/90 text-rose-600 border-white/90 font-extrabold shadow-sm',
+          badgeLabel: 'Question Box',
+          messageBox: 'bg-white text-stone-950 border-2 border-stone-100 rounded-3xl p-5 shadow-2xl relative',
+          messageTitle: 'text-rose-600 font-extrabold uppercase tracking-wider text-[11px] text-center block mb-1',
+          messageFont: 'font-body text-base sm:text-lg font-bold text-stone-950 text-center leading-snug',
+          lyricBox: 'bg-white/95 backdrop-blur-md border border-stone-200 text-stone-900 rounded-2xl p-3 shadow-md',
+          songBox: 'bg-white/95 backdrop-blur-md border border-stone-200 hover:border-rose-400 shadow-lg rounded-2xl p-3',
+          songTitle: 'text-stone-950 font-bold',
+          songSub: 'text-rose-600 font-bold',
+          buttonBg: 'bg-gradient-to-r from-rose-500 to-purple-600 text-white font-black shadow-md rounded-full',
+          footerTag: 'bg-white text-stone-950 shadow-lg font-extrabold border border-white rounded-full px-4 py-1.5',
+          decorator: '💬',
+        };
+
       case 'pastel_love': // Romantis & Soft Pink Dream
         return {
           wrapper: 'bg-gradient-to-br from-[#fff0f3] via-[#ffe4e6] to-[#fecdd3] text-rose-950 border-4 border-rose-400/90 shadow-2xl',
@@ -292,16 +316,40 @@ export default function StoryCard({
       </div>
 
       {/* Main Secret Content */}
-      <div className={`relative z-10 flex flex-col gap-3 my-auto ${activeTheme === 'paper_binder' ? 'pl-6' : ''}`}>
-        {/* Secret Message Box */}
-        <div className={`p-4 rounded-sm shadow-sm relative ${st.messageBox}`}>
-          <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${st.messageTitle}`}>
-            Pesan untuk {recipientName}
+      <div className={`relative z-10 flex flex-col gap-3 ${activeTheme === 'question_box' ? 'mt-4 mb-auto pt-2' : 'my-auto'} ${activeTheme === 'paper_binder' ? 'pl-6' : ''}`}>
+        {/* Secret Message Box (Speech Bubble for question_box theme) */}
+        {activeTheme === 'question_box' ? (
+          <div className="bg-white text-stone-950 border-2 border-stone-100 rounded-[26px] p-5 shadow-2xl relative">
+            {/* Header Sticker Pill */}
+            <div className="bg-gradient-to-r from-rose-500 via-purple-600 to-indigo-600 text-white text-[11px] font-extrabold px-3.5 py-1 rounded-full shadow-md uppercase tracking-wider flex items-center justify-center gap-1.5 -mt-8 mx-auto w-fit border-2 border-white">
+              <span>💬</span> send me anonymous secrets
+            </div>
+
+            <div className="pt-3 pb-1 text-center">
+              <p className="font-body text-base sm:text-lg font-black text-stone-950 leading-snug">
+                {message.message_text}
+              </p>
+            </div>
+
+            {/* Seamless SVG Speech Bubble Tail */}
+            <svg
+              className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-3 text-white pointer-events-none"
+              viewBox="0 0 24 12"
+              fill="currentColor"
+            >
+              <path d="M0 0 L12 12 L24 0 Z" />
+            </svg>
           </div>
-          <p className={`${st.messageFont} leading-snug`}>
-            "{message.message_text}"
-          </p>
-        </div>
+        ) : (
+          <div className={`p-4 rounded-sm shadow-sm relative ${st.messageBox}`}>
+            <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${st.messageTitle}`}>
+              Pesan untuk {recipientName}
+            </div>
+            <p className={`${st.messageFont} leading-snug`}>
+              {message.message_text}
+            </p>
+          </div>
+        )}
 
         {/* Selected Lyric Quote */}
         {message.selected_lyrics && (
@@ -370,9 +418,11 @@ export default function StoryCard({
 
       {/* Footer Bar */}
       <div className={`relative z-10 pt-2 flex flex-col items-center gap-1 border-t ${activeTheme === 'paper_binder' ? 'pl-6 border-stone-300' : 'border-current/20'}`}>
-        <div className="text-[11px] font-bold opacity-80">
-          Kirim pesan & lagu rahasiamu di link bio
-        </div>
+        {activeTheme !== 'question_box' && (
+          <div className="text-[11px] font-bold opacity-80">
+            Kirim pesan & lagu rahasiamu di link bio
+          </div>
+        )}
         <div className={`px-3 py-1 text-[10px] font-bold tracking-wide rounded-sm ${st.footerTag}`}>
           {domain}/u/{message.username || 'user'}
         </div>

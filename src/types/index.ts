@@ -40,6 +40,7 @@ export interface SongTrack {
 
 export type StoryTheme = 
   | 'paper_binder'
+  | 'question_box'
   | 'spotify' 
   | 'cyberpunk' 
   | 'glassmorphism' 
