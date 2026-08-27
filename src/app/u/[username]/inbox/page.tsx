@@ -58,12 +58,22 @@ export default function InboxPage({
       const loginData = await loginRes.json();
       setUser(loginData.user);
 
+      // Save logged in user session for navbar & persistent auth
+      const sessionObj = {
+        username: loginData.user.username,
+        name: loginData.user.name,
+        pin: pinCode,
+        avatar: loginData.user.avatar || '🎵',
+      };
+      localStorage.setItem('bisiklagu_session', JSON.stringify(sessionObj));
+      localStorage.setItem(`bisiklagu_pin_${username}`, pinCode);
+      window.dispatchEvent(new Event('bisiklagu_auth_change'));
+
       const msgRes = await fetch(`/api/messages?username=${encodeURIComponent(username)}&pin=${encodeURIComponent(pinCode)}`);
       const msgData = await msgRes.json();
 
       setMessages(msgData.messages || []);
       setIsUnlocked(true);
-      localStorage.setItem(`bisiklagu_pin_${username}`, pinCode);
     } catch (err) {
       setErrorMsg('Gagal memuat pesan');
     } finally {

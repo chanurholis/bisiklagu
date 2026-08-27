@@ -1,6 +1,58 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { getDb } from './db';
 import { User, SecretMessage } from '@/types';
+import bcrypt from 'bcryptjs';
+
+// ==========================================
+// PIN ENCRYPTION & SECURITY OPERATIONS
+// ==========================================
+
+export function hashPin(pin: string): string {
+  return bcrypt.hashSync(pin, 10);
+}
+
+export async function verifyAndUpgradeUserPin(user: User, inputPin: string): Promise<boolean> {
+  if (!user || !user.pin) return false;
+
+  const isBcrypt = user.pin.startsWith('$2a$') || user.pin.startsWith('$2b$');
+
+  if (isBcrypt) {
+    return bcrypt.compareSync(inputPin, user.pin);
+  }
+
+  // Legacy plain-text check & auto-upgrade to bcrypt
+  if (user.pin === inputPin) {
+    const hashed = hashPin(inputPin);
+    await updateUserPin(user.username, hashed);
+    return true;
+  }
+
+  return false;
+}
+
+export async function updateUserPin(username: string, hashedPin: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('users')
+      .update({ pin: hashedPin })
+      .eq('username', username);
+
+    if (error) {
+      console.error('Supabase updateUserPin error:', error);
+      return false;
+    }
+    return true;
+  }
+
+  try {
+    const db = getDb();
+    db.prepare('UPDATE users SET pin = ? WHERE username = ?').run(hashedPin, username);
+    return true;
+  } catch (err) {
+    console.error('SQLite updateUserPin error:', err);
+    return false;
+  }
+}
 
 // ==========================================
 // USER DATABASE OPERATIONS
@@ -41,11 +93,13 @@ export async function createUser(user: {
   theme?: string;
   avatar?: string;
 }): Promise<User | null> {
+  const hashedPin = hashPin(user.pin);
+
   const newUser = {
     id: user.id,
     username: user.username,
     name: user.name,
-    pin: user.pin,
+    pin: hashedPin,
     bio_prompt: user.bio_prompt || 'Kirimkan pesan rahasia & lagu favoritmu!',
     theme: user.theme || 'paper_binder',
     avatar: user.avatar || '🎵',
@@ -210,6 +264,60 @@ export async function createMessage(msg: {
   );
 
   return newMsg as unknown as SecretMessage;
+}
+
+// ==========================================
+// UNREAD NOTIFICATIONS & READ STATUS
+// ==========================================
+
+export async function getUnreadMessageCount(username: string): Promise<number> {
+  if (isSupabaseConfigured && supabase) {
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('username', username)
+      .eq('is_read', 0);
+
+    if (error) {
+      console.error('Supabase getUnreadMessageCount error:', error);
+      return 0;
+    }
+    return count || 0;
+  }
+
+  try {
+    const db = getDb();
+    const row = db.prepare('SELECT COUNT(*) as count FROM messages WHERE username = ? AND is_read = 0').get(username) as any;
+    return row?.count || 0;
+  } catch (err) {
+    console.error('SQLite getUnreadMessageCount error:', err);
+    return 0;
+  }
+}
+
+export async function markMessagesAsRead(username: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_read: 1 })
+      .eq('username', username)
+      .eq('is_read', 0);
+
+    if (error) {
+      console.error('Supabase markMessagesAsRead error:', error);
+      return false;
+    }
+    return true;
+  }
+
+  try {
+    const db = getDb();
+    db.prepare('UPDATE messages SET is_read = 1 WHERE username = ? AND is_read = 0').run(username);
+    return true;
+  } catch (err) {
+    console.error('SQLite markMessagesAsRead error:', err);
+    return false;
+  }
 }
 
 export async function deleteMessageById(id: string, username: string): Promise<boolean> {

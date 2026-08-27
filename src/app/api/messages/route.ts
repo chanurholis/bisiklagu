@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByUsername, getMessagesByUsername, getRecentPublicMessages, createMessage } from '@/lib/dbHelper';
+import { getUserByUsername, getMessagesByUsername, getRecentPublicMessages, createMessage, verifyAndUpgradeUserPin, markMessagesAsRead } from '@/lib/dbHelper';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('username');
@@ -31,8 +31,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!isPublic && user.pin !== pin) {
-      return NextResponse.json({ error: 'PIN salah! Akses inbox ditolak.' }, { status: 401 });
+    if (!isPublic) {
+      if (!pin) {
+        return NextResponse.json({ error: 'PIN wajib diisi untuk inbox' }, { status: 401 });
+      }
+      const isValidPin = await verifyAndUpgradeUserPin(user, pin);
+      if (!isValidPin) {
+        return NextResponse.json({ error: 'PIN salah! Akses inbox ditolak.' }, { status: 401 });
+      }
+      // When user successfully accesses inbox with PIN, mark unread messages as read
+      await markMessagesAsRead(username);
     }
 
     const messages = await getMessagesByUsername(username);

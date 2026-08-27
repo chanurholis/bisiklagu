@@ -58,6 +58,18 @@ export default function CreateProfilePage() {
       }
 
       setCreatedUser(data.user);
+
+      // Save user session & PIN
+      const sessionObj = {
+        username: data.user.username,
+        name: data.user.name,
+        pin: pin,
+        avatar: data.user.avatar || '🎵',
+      };
+      localStorage.setItem('bisiklagu_session', JSON.stringify(sessionObj));
+      localStorage.setItem(`bisiklagu_pin_${data.user.username}`, pin);
+      window.dispatchEvent(new Event('bisiklagu_auth_change'));
+
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
     } catch (err) {
       setErrorMsg('Terjadi kesalahan jaringan');

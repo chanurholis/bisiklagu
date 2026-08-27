@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByUsername } from '@/lib/dbHelper';
+import { getUserByUsername, verifyAndUpgradeUserPin } from '@/lib/dbHelper';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,10 +16,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User tidak ditemukan' }, { status: 404 });
     }
 
-    if (user.pin !== pin) {
-      return NextResponse.json({ error: 'PIN salah! Akses ditolak.' }, { status: 401 });
+    const isValidPin = await verifyAndUpgradeUserPin(user, pin);
+
+    if (!isValidPin) {
+      return NextResponse.json({ error: 'PIN / Password salah! Akses ditolak.' }, { status: 401 });
     }
 
+    // Never expose encrypted or raw PIN in API response
     const { pin: _, ...publicUser } = user;
     return NextResponse.json({ success: true, user: publicUser });
   } catch (err: any) {
