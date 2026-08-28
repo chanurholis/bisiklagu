@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { decodeHTMLEntities } from '@/lib/security';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -24,10 +25,10 @@ export async function GET(request: NextRequest) {
       const match = data[0];
       const plainLyrics = match.plainLyrics || match.syncedLyrics || '';
       
-      // Split into clean lines, remove empty lines
+      // Split into clean lines, decode HTML entities, remove empty lines
       const lines = plainLyrics
         .split('\n')
-        .map((line: string) => line.replace(/\[\d+:\d+\.\d+\]/g, '').trim())
+        .map((line: string) => decodeHTMLEntities(line.replace(/\[\d+:\d+\.\d+\]/g, '')).trim())
         .filter((line: string) => line.length > 0 && !line.startsWith('['));
 
       return NextResponse.json({

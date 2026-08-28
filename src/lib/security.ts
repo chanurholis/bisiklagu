@@ -3,23 +3,45 @@
  * Protection against XSS, SQL Injection, Invalid Inputs & Privilege Escalation
  */
 
-// Escape HTML special characters to prevent stored/reflected XSS
+// Decode HTML entities (e.g. &#x27; -> ', &quot; -> ", &amp; -> &, &lt; -> <, &gt; -> >)
+export function decodeHTMLEntities(text?: string | null): string {
+  if (!text) return '';
+  let str = text;
+  let prev = '';
+  let passes = 0;
+  // Loop up to 3 passes to handle multi-encoded entities like &amp;#x27;
+  while (str !== prev && passes < 3) {
+    prev = str;
+    passes++;
+    str = str
+      .replace(/&#x27;/gi, "'")
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/gi, '"')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&#x2F;/gi, '/')
+      .replace(/&#47;/g, '/')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+  }
+  return str;
+}
+
+// Clean and sanitize URL parameters / input text safely while preserving clean text characters like quotes
 export function sanitizeInput(input?: string | null, maxLength = 1000): string {
   if (!input) return '';
-  const trimmed = input.trim().slice(0, maxLength);
-  return trimmed
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  const decoded = decodeHTMLEntities(input.trim().slice(0, maxLength));
+  return decoded
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '');
 }
 
 // Unescape for canvas / SVG exporter rendering when needed safely
 export function safeText(input?: string | null): string {
   if (!input) return '';
-  return input.trim().slice(0, 1000);
+  return decodeHTMLEntities(input.trim().slice(0, 1000));
 }
 
 // Strict username format validation (Alphanumeric and underscore only, 3-30 chars)

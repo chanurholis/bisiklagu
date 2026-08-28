@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { SecretMessage, StoryTheme } from '@/types';
+import { decodeHTMLEntities } from '@/lib/security';
 
 interface StoryCardProps {
   message: SecretMessage;
@@ -327,7 +328,7 @@ export default function StoryCard({
 
             <div className="pt-3 pb-1 text-center">
               <p className="font-body text-base sm:text-lg font-black text-stone-950 leading-snug">
-                {message.message_text}
+                {decodeHTMLEntities(message.message_text)}
               </p>
             </div>
 
@@ -343,10 +344,10 @@ export default function StoryCard({
         ) : (
           <div className={`p-4 rounded-sm shadow-sm relative ${st.messageBox}`}>
             <div className={`text-[10px] uppercase tracking-wider font-bold mb-1 ${st.messageTitle}`}>
-              Pesan untuk {recipientName}
+              Pesan untuk {decodeHTMLEntities(recipientName)}
             </div>
             <p className={`${st.messageFont} leading-snug`}>
-              {message.message_text}
+              {decodeHTMLEntities(message.message_text)}
             </p>
           </div>
         )}
@@ -358,7 +359,7 @@ export default function StoryCard({
               Lirik:
             </span>
             <p className="font-body text-xs sm:text-sm font-medium italic border-l-2 border-current pl-2 py-0.5 leading-normal">
-              "{message.selected_lyrics}"
+              "{decodeHTMLEntities(message.selected_lyrics)}"
             </p>
           </div>
         )}
@@ -387,9 +388,9 @@ export default function StoryCard({
                 Lagu Rahasia
               </span>
               <h4 className={`text-xs sm:text-sm font-bold truncate ${st.songTitle}`}>
-                {message.song_title}
+                {decodeHTMLEntities(message.song_title)}
               </h4>
-              <p className={`text-[11px] truncate font-medium ${st.songSub}`}>{message.song_artist}</p>
+              <p className={`text-[11px] truncate font-medium ${st.songSub}`}>{decodeHTMLEntities(message.song_artist)}</p>
             </div>
 
             {message.song_preview_url && (
@@ -406,7 +407,7 @@ export default function StoryCard({
         {/* Sender Hint */}
         {message.hint_sender && (
           <div className={`text-[11px] text-center font-bold py-1 px-3 border rounded-sm self-center shadow-xs ${st.badge}`}>
-            Petunjuk: {message.hint_sender}
+            Petunjuk: {decodeHTMLEntities(message.hint_sender)}
           </div>
         )}
 
@@ -414,10 +415,10 @@ export default function StoryCard({
         {message.reply_text && (
           <div className="p-3 bg-stone-900 text-stone-100 border border-amber-400 rounded-sm shadow-md space-y-1">
             <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">
-              Balasan {recipientName}:
+              Balasan {decodeHTMLEntities(recipientName)}:
             </span>
             <p className="font-body text-xs sm:text-sm font-semibold text-amber-100 leading-normal">
-              "{message.reply_text}"
+              "{decodeHTMLEntities(message.reply_text)}"
             </p>
           </div>
         )}

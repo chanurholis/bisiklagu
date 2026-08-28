@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SongTrack } from '@/types';
 import { Search, Music, Play, Pause, Check, Quote, RefreshCw, X, Paperclip } from 'lucide-react';
+import { decodeHTMLEntities } from '@/lib/security';
 
 interface SongPickerProps {
   onSelectSong: (song: {
@@ -80,7 +81,8 @@ export default function SongPicker({ onSelectSong, selectedSongData }: SongPicke
         )}`
       );
       const data = await res.json();
-      setLyricsList(data.lyrics || []);
+      const rawLyrics: string[] = data.lyrics || [];
+      setLyricsList(rawLyrics.map((l) => decodeHTMLEntities(l)));
     } catch (e) {
       setLyricsList([]);
     } finally {
@@ -119,7 +121,8 @@ export default function SongPicker({ onSelectSong, selectedSongData }: SongPicke
   };
 
   const handleSelectLyricLine = (line: string) => {
-    const finalLyric = selectedLyricLine === line ? '' : line;
+    const cleanLine = decodeHTMLEntities(line);
+    const finalLyric = selectedLyricLine === cleanLine ? '' : cleanLine;
     setSelectedLyricLine(finalLyric);
     if (selectedTrack) {
       onSelectSong({
@@ -133,7 +136,8 @@ export default function SongPicker({ onSelectSong, selectedSongData }: SongPicke
   };
 
   const handleCustomLyricChange = (val: string) => {
-    setCustomLyric(val);
+    const cleanVal = decodeHTMLEntities(val);
+    setCustomLyric(cleanVal);
     setSelectedLyricLine('');
     if (selectedTrack) {
       onSelectSong({
@@ -141,7 +145,7 @@ export default function SongPicker({ onSelectSong, selectedSongData }: SongPicke
         song_artist: selectedTrack.artistName,
         song_album_cover: selectedTrack.artworkUrl600 || selectedTrack.artworkUrl100,
         song_preview_url: selectedTrack.previewUrl,
-        selected_lyrics: val,
+        selected_lyrics: cleanVal,
       });
     }
   };

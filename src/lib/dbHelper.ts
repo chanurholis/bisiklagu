@@ -2,6 +2,21 @@ import { supabase, isSupabaseConfigured } from './supabase';
 import { getDb } from './db';
 import { User, SecretMessage } from '@/types';
 import bcrypt from 'bcryptjs';
+import { decodeHTMLEntities } from './security';
+
+function decodeMessageRecord(msg: SecretMessage): SecretMessage {
+  if (!msg) return msg;
+  return {
+    ...msg,
+    sender_alias: decodeHTMLEntities(msg.sender_alias),
+    message_text: decodeHTMLEntities(msg.message_text),
+    song_title: decodeHTMLEntities(msg.song_title),
+    song_artist: decodeHTMLEntities(msg.song_artist),
+    selected_lyrics: decodeHTMLEntities(msg.selected_lyrics),
+    hint_sender: decodeHTMLEntities(msg.hint_sender),
+    reply_text: decodeHTMLEntities(msg.reply_text),
+  };
+}
 
 // ==========================================
 // PIN ENCRYPTION & SECURITY OPERATIONS
@@ -182,7 +197,7 @@ export async function getRecentPublicMessages(limit = 6): Promise<SecretMessage[
       console.error('Supabase getRecentPublicMessages error:', error);
       return [];
     }
-    return (data as SecretMessage[]) || [];
+    return ((data as SecretMessage[]) || []).map(decodeMessageRecord);
   }
 
   // SQLite Fallback
@@ -191,7 +206,7 @@ export async function getRecentPublicMessages(limit = 6): Promise<SecretMessage[
     const msgs = db
       .prepare('SELECT * FROM messages ORDER BY created_at DESC LIMIT ?')
       .all(limit);
-    return (msgs as SecretMessage[]) || [];
+    return ((msgs as SecretMessage[]) || []).map(decodeMessageRecord);
   } catch (err) {
     console.error('SQLite getRecentPublicMessages error:', err);
     return [];
@@ -210,7 +225,7 @@ export async function getMessagesByUsername(username: string): Promise<SecretMes
       console.error('Supabase getMessagesByUsername error:', error);
       return [];
     }
-    return (data as SecretMessage[]) || [];
+    return ((data as SecretMessage[]) || []).map(decodeMessageRecord);
   }
 
   // SQLite Fallback
@@ -219,7 +234,7 @@ export async function getMessagesByUsername(username: string): Promise<SecretMes
     const msgs = db
       .prepare('SELECT * FROM messages WHERE username = ? ORDER BY created_at DESC')
       .all(username);
-    return (msgs as SecretMessage[]) || [];
+    return ((msgs as SecretMessage[]) || []).map(decodeMessageRecord);
   } catch (err) {
     console.error('SQLite getMessagesByUsername error:', err);
     return [];

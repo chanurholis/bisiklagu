@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCanvas, loadImage } from 'canvas';
+import { decodeHTMLEntities } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,6 +16,14 @@ export async function POST(request: NextRequest) {
       hint_sender,
       username,
     } = body;
+
+    const safeMessageText = decodeHTMLEntities(message_text);
+    const safeSelectedLyrics = decodeHTMLEntities(selected_lyrics);
+    const safeSongTitle = decodeHTMLEntities(song_title);
+    const safeSongArtist = decodeHTMLEntities(song_artist);
+    const safeSenderAlias = decodeHTMLEntities(sender_alias);
+    const safeRecipientName = decodeHTMLEntities(recipient_name);
+    const safeHintSender = decodeHTMLEntities(hint_sender);
 
     // Create 1080x1920 High Resolution Canvas for IG Story
     const width = 1080;
@@ -68,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     ctx.fillStyle = '#451a03';
     ctx.font = 'bold 44px sans-serif';
-    ctx.fillText(`Pesan Rahasia untuk ${recipient_name || 'Kamu'}`, 180, 180);
+    ctx.fillText(`Pesan Rahasia untuk ${safeRecipientName || 'Kamu'}`, 180, 180);
 
     // 4. Sticky Post-It Note (Main Message Box)
     const boxX = 180;
@@ -94,13 +103,13 @@ export async function POST(request: NextRequest) {
     // Sender Tag
     ctx.fillStyle = '#92400e';
     ctx.font = 'bold 32px sans-serif';
-    ctx.fillText(`Dari: ${sender_alias || 'Pengagum Rahasia'}`, boxX + 40, boxY + 70);
+    ctx.fillText(`Dari: ${safeSenderAlias || 'Pengagum Rahasia'}`, boxX + 40, boxY + 70);
 
     // Message Text (Word Wrap)
     ctx.fillStyle = '#1c1917';
     ctx.font = 'bold 40px sans-serif';
     
-    const words = (message_text || '').split(' ');
+    const words = (safeMessageText || '').split(' ');
     let line = '';
     let currY = boxY + 140;
     const maxWidth = boxW - 80;
@@ -122,7 +131,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Lyrics Quote Box (If present)
     let nextY = 700;
-    if (selected_lyrics) {
+    if (safeSelectedLyrics) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(boxX, nextY, boxW, 260);
       ctx.lineWidth = 3;
@@ -139,13 +148,13 @@ export async function POST(request: NextRequest) {
 
       ctx.fillStyle = '#334155';
       ctx.font = 'italic 34px sans-serif';
-      ctx.fillText(`"${selected_lyrics}"`, boxX + 40, nextY + 130);
+      ctx.fillText(`"${safeSelectedLyrics}"`, boxX + 40, nextY + 130);
 
       nextY += 300;
     }
 
     // 6. Song Player Section (If present)
-    if (song_title) {
+    if (safeSongTitle) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(boxX, nextY, boxW, 240);
       ctx.lineWidth = 3;
@@ -170,17 +179,17 @@ export async function POST(request: NextRequest) {
 
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 42px sans-serif';
-      ctx.fillText(song_title, songTextX, nextY + 125);
+      ctx.fillText(safeSongTitle, songTextX, nextY + 125);
 
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 34px sans-serif';
-      ctx.fillText(song_artist || '', songTextX, nextY + 175);
+      ctx.fillText(safeSongArtist || '', songTextX, nextY + 175);
 
       nextY += 270;
     }
 
     // 7. Hint Sender
-    if (hint_sender) {
+    if (safeHintSender) {
       ctx.fillStyle = '#fef3c7';
       ctx.fillRect(boxX, nextY, boxW, 100);
       ctx.strokeStyle = '#fde047';
@@ -188,7 +197,7 @@ export async function POST(request: NextRequest) {
 
       ctx.fillStyle = '#78350f';
       ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(`💡 Petunjuk: ${hint_sender}`, boxX + 40, nextY + 60);
+      ctx.fillText(`💡 Petunjuk: ${safeHintSender}`, boxX + 40, nextY + 60);
     }
 
     // 8. Footer Link Bar for IG Story
